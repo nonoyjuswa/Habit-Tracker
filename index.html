@@ -1,223 +1,563 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HabitGrid</title>
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Web App Capabilities (iOS standalone mode) -->
+    <title>GitHabit - GitHub Style Habit Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PWA Metadata -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="HabitGrid">
-    
-    <!-- Inline PWA Manifest Configuration -->
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkhhYml0R3JpZCBIYWJpdCBUcmFja2VyIiwKICAic2hvcnRfbmFtZSI6ICJIYWJpdEdyaWQiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBiMGYxOSIsCiAgInRoZW1lX2NvbG9yIjogIiMwYjBmMTkiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUJrWldabGN5STZJQ0p1ZFdTaUlIbHdaVzVuY25RaUlIZHBaR1YwYUNJZ2FXNW1iM0p0Y25RaUlIZHBiR3dnTWpnd0lESmdvQ0FnUEhOMlp5QjRaVzVrWDNCeWIyWjFibVFpSUhOMWNtNWxJQ0p1ZFdTaUlIZHBaR1YwYUNJZ2FXNW1iM0p0Y25RaUlIZHBiR3dnTURBZ01ERWdNemd3SURNNEdvQ0FnSUNjM055QmhaR1FpSUhOMWNtNWxJQ0pyWlhabGN5STZJQ0pwWjI0aUlIZHBiR3dnTkRBZ05EQWdOVFl3SURVMkdpQjRhVzFwZEc5eWNtNWxJQ0pwWjI0NklDSmliM0lnTWpnd0lESmdvQ0FnSUNjN0NqeHpaVzVjUGc9PSIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0=">
+    <meta name="apple-mobile-web-app-title" content="GitHabit">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkdpdEhhYml0IiwKICAic2hvcnJfbmFtZSI6ICJHaXRIYWJpdCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGQxMTE3IiwKICAidGhlbWVfY29sb3IiOiAiIzBkMTExNyIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiaW5hcnksUEhOMlp5QjRaVzVrWDNCeWIyWjFibVFpSUhOMWNtNWxJQ0p1ZFdTaUlIZHBaR1YwYUNJZ2FXNW1iM0p0Y25RaUlIZHBiR3dnTURBZ01ERWdNemd3SURNNEdvQ0FnSUNjM055QmhaR1FpSUhOMWNtNWxJQ0pyWlhabGN5STZJQ0pwWjI0aUlIZHBiR3dnTkRBZ05EQWdOVFl3SURVMkdpQjRhVzFwZEc5eWNtNWxJQ0pwWjI0NklDSmliM0lnTWpnd0lESmdvQ0FnSUNjN0NqeHpaVzVjUGc9PSIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0=">
+
+    <style>
+        /* Custom scrollbar rules matching GitHub Dark Mode aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d1117;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8b949e;
+        }
+        /* Custom styling for contribution cell transition and focus rings */
+        .contrib-cell {
+            transition: transform 0.1s ease, filter 0.1s ease;
+        }
+        .contrib-cell:active {
+            transform: scale(0.9);
+        }
+        /* Lock screen bounce on mobile standalone display modes */
+        html, body {
+            overscroll-behavior-y: contain;
+        }
+    </style>
 </head>
-<body class="bg-[#0b0f19] text-gray-100 font-sans min-h-screen pb-12">
+<body class="bg-[#0d1117] text-[#c9d1d9] font-sans antialiased min-h-screen flex flex-col selection:bg-[#388bfd]/30">
 
-    <!-- Navbar -->
-    <nav class="border-b border-gray-800 bg-[#0f172a] p-4 sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                🟩 HabitGrid
-            </h1>
-            <span class="text-xs text-gray-400 bg-gray-800 px-2.5 py-1 rounded-full font-mono" id="current-month">July 2026</span>
+    <!-- Navigation / Header -->
+    <header class="border-b border-[#21262d] bg-[#161b22] sticky top-0 z-40 px-4 py-3 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-[#238636] p-2 rounded-lg text-white animate-pulse">
+                    <i class="fa-solid fa-square-poll-vertical text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
+                        GitHabit <span class="text-xs bg-[#21262d] text-[#8b949e] px-2 py-0.5 rounded border border-[#30363d] font-normal">v2026.1</span>
+                    </h1>
+                    <p class="text-[10px] text-[#8b949e] uppercase tracking-wider font-semibold">Your Habit Contribution Board</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openAddModal()" class="bg-[#238636] hover:bg-[#2ea043] active:scale-95 text-white text-xs font-semibold px-3 py-2 rounded-md transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+                    <i class="fa-solid fa-plus"></i> Add Habit
+                </button>
+            </div>
         </div>
-    </nav>
+    </header>
 
-    <main class="max-w-4xl mx-auto p-4 space-y-6">
+    <main class="max-w-6xl mx-auto p-4 w-full flex-grow flex flex-col gap-6">
         
-        <!-- Add New Habit Form -->
-        <section class="bg-[#0f172a] border border-gray-800 rounded-xl p-4 shadow-xl">
-            <form id="habit-form" class="flex flex-col sm:flex-row gap-3">
-                <input type="text" id="habit-name" required placeholder="New habit (e.g., LeetCode, Avoid Soda)..." 
-                    class="flex-grow bg-[#1e293b] border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-emerald-500">
-                <div class="flex gap-2">
-                    <select id="habit-type" class="bg-[#1e293b] border border-gray-700 rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-500">
-                        <option value="want">🟢 Want (Build)</option>
-                        <option value="dont">🔴 Don't (Break)</option>
-                    </select>
-                    <button type="submit" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm px-6 py-2.5 rounded-lg transition-colors cursor-pointer">
-                        Add
+        <!-- Welcome & Quick Stats Banner -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Habit Count Stats -->
+            <div class="bg-[#161b22] border border-[#21262d] rounded-lg p-4 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-[#1f6feb]/15 text-[#58a6ff] flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-[#8b949e] font-medium">Tracking Habits</p>
+                    <h3 class="text-2xl font-bold text-white" id="stat-total-habits">0</h3>
+                </div>
+            </div>
+            <!-- Overall Consistency Stats -->
+            <div class="bg-[#161b22] border border-[#21262d] rounded-lg p-4 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-[#238636]/15 text-[#39d353] flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-fire-flame-simple"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-[#8b949e] font-medium">Longest Active Streak</p>
+                    <h3 class="text-2xl font-bold text-white" id="stat-max-streak">0 days</h3>
+                </div>
+            </div>
+            <!-- Overall Completion Rates -->
+            <div class="bg-[#161b22] border border-[#21262d] rounded-lg p-4 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-[#ab7df6]/15 text-[#d2a8ff] flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-[#8b949e] font-medium">Yearly Target Score</p>
+                    <h3 class="text-2xl font-bold text-white" id="stat-target-score">0</h3>
+                </div>
+            </div>
+        </section>
+
+        <!-- Habit Grids Workspace -->
+        <section id="habits-list" class="space-y-6">
+            <!-- Habit items will be dynamically injected here -->
+        </section>
+    </main>
+
+    <!-- Add Habit Dialog Modal -->
+    <div id="add-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-[#161b22] border border-[#30363d] w-full max-w-md rounded-lg shadow-2xl p-6 relative animate-in fade-in zoom-in-95 duration-150">
+            <button onclick="closeAddModal()" class="absolute top-4 right-4 text-[#8b949e] hover:text-white transition-colors cursor-pointer text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-square-plus text-[#238636]"></i> Create New Tracked Habit
+            </h2>
+            <form id="new-habit-form" class="space-y-4">
+                <div>
+                    <label for="habit-name" class="block text-xs font-semibold text-[#8b949e] uppercase mb-1.5 tracking-wider">Habit Title</label>
+                    <input type="text" id="habit-name" required placeholder="e.g., Code LeetCode, Drink Water, No Sugar..." 
+                        class="w-full bg-[#0d1117] border border-[#30363d] rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-[#58a6ff]">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-[#8b949e] uppercase mb-1.5 tracking-wider">Habit Objective</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="border border-[#30363d] bg-[#0d1117] rounded-md p-3 flex flex-col justify-between cursor-pointer hover:border-emerald-500/50 [&:has(input:checked)]:border-[#2ea043] [&:has(input:checked)]:bg-[#238636]/10">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-bold text-white">Want</span>
+                                <input type="radio" name="habit-type" value="want" checked class="accent-[#2ea043]">
+                            </div>
+                            <span class="text-[10px] text-[#8b949e]">Build a positive habit (Green)</span>
+                        </label>
+                        <label class="border border-[#30363d] bg-[#0d1117] rounded-md p-3 flex flex-col justify-between cursor-pointer hover:border-rose-500/50 [&:has(input:checked)]:border-[#f85149] [&:has(input:checked)]:bg-[#f85149]/10">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-bold text-white">Don't Want</span>
+                                <input type="radio" name="habit-type" value="dont" class="accent-[#f85149]">
+                            </div>
+                            <span class="text-[10px] text-[#8b949e]">Break a bad habit (Red)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end gap-3">
+                    <button type="button" onclick="closeAddModal()" class="border border-[#30363d] hover:bg-[#21262d] text-white text-xs font-semibold px-4 py-2.5 rounded-md transition-colors cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-semibold px-4 py-2.5 rounded-md transition-colors cursor-pointer">
+                        Create Habit
                     </button>
                 </div>
             </form>
-        </section>
-
-        <!-- Habit Lists Container -->
-        <div id="habits-container" class="space-y-4">
-            <!-- Habit tracking rows inject here via JavaScript -->
         </div>
-    </main>
+    </div>
+
+    <!-- Custom Popover Tooltip -->
+    <div id="grid-tooltip" class="absolute bg-[#30363d] text-white text-xs px-2.5 py-1.5 rounded shadow-lg pointer-events-none opacity-0 transition-opacity duration-150 z-50 border border-[#444c56] font-sans">
+        0 contributions on July 17, 2026
+    </div>
+
+    <!-- Footer block -->
+    <footer class="border-t border-[#21262d] py-6 bg-[#0d1117] mt-auto">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p class="text-xs text-[#8b949e]">&copy; 2026 GitHabit. Inspired by GitHub's contribution graph design.</p>
+            <div class="flex gap-4 text-[#8b949e] text-xs">
+                <span>Tip: Click cells multiple times to cycle contribution intensity levels!</span>
+            </div>
+        </div>
+    </footer>
 
     <script>
-        // App State
-        let habits = JSON.parse(localStorage.getItem('habitgrid_data')) || [
-            { id: '1', name: 'Write Code', type: 'want', history: { '2026-07-01': true, '2026-07-02': true, '2026-07-03': true } },
-            { id: '2', name: 'Doomscrolling', type: 'dont', history: { '2026-07-01': false, '2026-07-02': true } }
+        // Set fixed system timeline context: July 17, 2026
+        const SYSTEM_YEAR = 2026;
+        const SYSTEM_MONTH_INDEX = 6; // July (0-indexed)
+        const SYSTEM_DAY_OF_MONTH = 17;
+        const systemToday = new Date(SYSTEM_YEAR, SYSTEM_MONTH_INDEX, SYSTEM_DAY_OF_MONTH);
+
+        // Core App State (Saved to LocalStorage)
+        let habits = JSON.parse(localStorage.getItem('githabit_records')) || [
+            {
+                id: '1',
+                name: 'Write Code',
+                type: 'want',
+                history: {
+                    '2026-07-17': 4,
+                    '2026-07-16': 3,
+                    '2026-07-15': 4,
+                    '2026-07-14': 2,
+                    '2026-07-13': 1,
+                    '2026-07-12': 0,
+                    '2026-07-11': 3,
+                    '2026-07-10': 4,
+                    '2026-07-09': 4,
+                    '2026-07-08': 2
+                }
+            },
+            {
+                id: '2',
+                name: 'Doomscrolling',
+                type: 'dont',
+                history: {
+                    '2026-07-17': 0,
+                    '2026-07-16': 1,
+                    '2026-07-15': 3,
+                    '2026-07-14': 0,
+                    '2026-07-13': 0,
+                    '2026-07-12': 2
+                }
+            }
         ];
 
-        // 2026 Date Helper Setup (Matches current month query context)
-        const currentYear = 2026;
-        const currentMonthIndex = 6; // July (0-indexed)
-        const daysInMonth = 31;
+        // We calculate exactly 53 complete weeks (371 days) ending on the current week's Saturday
+        const calendarDays = [];
+        const daysOfWeekLetters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+        const monthShortNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        document.getElementById('current-month').innerText = "July 2026";
+        function buildCalendarTimeline() {
+            calendarDays.length = 0; // reset
+            // Find current week's Saturday to pad to the end of the 53rd column
+            const currentDayOfWeek = systemToday.getDay(); // 5 = Friday
+            const paddingDays = 6 - currentDayOfWeek; // Pad Saturday (6)
+            
+            const timelineEnd = new Date(systemToday);
+            timelineEnd.setDate(timelineEnd.getDate() + paddingDays);
 
-        // DOM Elements
-        const habitForm = document.getElementById('habit-form');
-        const habitsContainer = document.getElementById('habits-container');
+            // Backtrack exactly 370 days from that Saturday (total 371 days representing 53 columns * 7 rows)
+            const timelineStart = new Date(timelineEnd);
+            timelineStart.setDate(timelineStart.getDate() - 370);
 
-        // Form Submit Handler
-        habitForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const nameInput = document.getElementById('habit-name');
-            const typeInput = document.getElementById('habit-type');
-
-            const newHabit = {
-                id: Date.now().toString(),
-                name: nameInput.value.trim(),
-                type: typeInput.value,
-                history: {}
-            };
-
-            habits.push(newHabit);
-            saveData();
-            renderHabits();
-            nameInput.value = '';
-        });
-
-        // Save to LocalStorage
-        function saveData() {
-            localStorage.setItem('habitgrid_data', JSON.stringify(habits));
-        }
-
-        // Delete Habit Helper
-        window.deleteHabit = function(id) {
-            habits = habits.filter(h => h.id !== id);
-            saveData();
-            renderHabits();
-        }
-
-        // Toggle Single Day Checkbox
-        window.toggleDay = function(habitId, dateStr) {
-            const habit = habits.find(h => h.id === habitId);
-            if (habit) {
-                habit.history[dateStr] = !habit.history[dateStr];
-                saveData();
-                renderHabits();
+            let tempDate = new Date(timelineStart);
+            while (tempDate <= timelineEnd) {
+                const year = tempDate.getFullYear();
+                const month = String(tempDate.getMonth() + 1).padStart(2, '0');
+                const date = String(tempDate.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${date}`;
+                
+                calendarDays.push({
+                    dateStr: dateStr,
+                    dayOfWeek: tempDate.getDay(),
+                    monthIndex: tempDate.getMonth(),
+                    dateNum: tempDate.getDate(),
+                    monthLabel: monthShortNames[tempDate.getMonth()],
+                    formattedString: tempDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    isToday: dateStr === '2026-07-17',
+                    isPastToday: tempDate > systemToday
+                });
+                
+                tempDate.setDate(tempDate.getDate() + 1);
             }
         }
 
-        // Calculate Longest Active Streak
-        function calculateStreak(history, type) {
-            let currentStreak = 0;
-            let maxStreak = 0;
+        function openAddModal() {
+            document.getElementById('add-modal').classList.remove('hidden');
+            document.getElementById('habit-name').focus();
+        }
 
-            for (let d = 1; d <= daysInMonth; d++) {
-                const dateStr = `${currentYear}-07-${String(d).padStart(2, '0')}`;
-                const status = history[dateStr];
-                
-                // For 'want', true means success. For 'dont', true means bad habit performed (break streak).
-                const isSuccess = type === 'want' ? !!status : (status === undefined ? true : !status);
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+        }
+
+        // Add Habit Form Listener
+        document.getElementById('new-habit-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('habit-name').value.trim();
+            const type = document.querySelector('input[name="habit-type"]:checked').value;
+
+            if (name) {
+                const newHabit = {
+                    id: Date.now().toString(),
+                    name: name,
+                    type: type,
+                    history: {}
+                };
+                habits.push(newHabit);
+                saveData();
+                renderAll();
+                closeAddModal();
+                document.getElementById('new-habit-form').reset();
+            }
+        });
+
+        function deleteHabit(habitId) {
+            if (confirm("Are you sure you want to delete this tracked habit? This action cannot be undone.")) {
+                habits = habits.filter(h => h.id !== habitId);
+                saveData();
+                renderAll();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('githabit_records', JSON.stringify(habits));
+        }
+
+        function getStreakStats(history, type) {
+            let maxStreak = 0;
+            let currentStreak = 0;
+            let totalContributions = 0;
+
+            // Analyze chronological order
+            // Sort keys to parse days sequentially
+            const sortedCalendar = [...calendarDays].filter(day => !day.isPastToday);
+
+            sortedCalendar.forEach(day => {
+                const count = history[day.dateStr] || 0;
+                let isSuccess = false;
+
+                if (type === 'want') {
+                    // Level 1 or higher means active habit checked off
+                    isSuccess = count > 0;
+                    if (isSuccess) totalContributions += count;
+                } else {
+                    // For bad habits: Level 0 means perfect abstained day. Any count represents a slip.
+                    isSuccess = count === 0;
+                    if (isSuccess) totalContributions += 4; // Avoided gets full progress points
+                }
 
                 if (isSuccess) {
                     currentStreak++;
-                    if (currentStreak > maxStreak) maxStreak = currentStreak;
+                    if (currentStreak > maxStreak) {
+                        maxStreak = currentStreak;
+                    }
                 } else {
                     currentStreak = 0;
                 }
-            }
-            return maxStreak;
+            });
+
+            return {
+                currentStreak: currentStreak,
+                maxStreak: maxStreak,
+                totalContributions: totalContributions
+            };
         }
 
-        // Main Render Loop
-        function renderHabits() {
-            habitsContainer.innerHTML = '';
+        // Cycle activity levels inside the selected calendar grid block
+        window.cycleLevel = function(habitId, dateStr) {
+            const habit = habits.find(h => h.id === habitId);
+            if (!habit) return;
 
-            if (habits.length === 0) {
-                habitsContainer.innerHTML = `
-                    <div class="text-center py-12 text-gray-500 text-sm">
-                        No habits tracked yet. Add your first habit above to get started!
-                    </div>`;
-                return;
+            // Don't log dates in the future
+            const clickedDate = new Date(dateStr);
+            if (clickedDate > systemToday) return;
+
+            const currentVal = habit.history[dateStr] || 0;
+            // Cycle intensity counts 0 -> 1 -> 2 -> 3 -> 4 -> 0
+            const nextVal = (currentVal + 1) % 5;
+            
+            if (nextVal === 0) {
+                delete habit.history[dateStr];
+            } else {
+                habit.history[dateStr] = nextVal;
             }
 
+            saveData();
+            renderAll();
+        }
+
+        const tooltip = document.getElementById('grid-tooltip');
+
+        function showTooltip(event, message) {
+            tooltip.innerText = message;
+            tooltip.style.opacity = '1';
+            positionTooltip(event);
+        }
+
+        function positionTooltip(event) {
+            tooltip.style.left = (event.pageX + 10) + 'px';
+            tooltip.style.top = (event.pageY + 10) + 'px';
+        }
+
+        function hideTooltip() {
+            tooltip.style.opacity = '0';
+        }
+
+        function renderAll() {
+            buildCalendarTimeline();
+            const habitsList = document.getElementById('habits-list');
+            habitsList.innerHTML = '';
+
+            let overallMaxStreak = 0;
+            let overallTotalTargetScore = 0;
+
             habits.forEach(habit => {
-                const history = habit.history || {};
-                
-                // Compute Stats
-                let totalSuccesses = 0;
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const dateStr = `${currentYear}-07-${String(d).padStart(2, '0')}`;
-                    const status = history[dateStr];
-                    if (habit.type === 'want' && !!status) totalSuccesses++;
-                    if (habit.type === 'dont' && status === false) totalSuccesses++; // explicit avoid
+                const stats = getStreakStats(habit.history, habit.type);
+                if (stats.maxStreak > overallMaxStreak) {
+                    overallMaxStreak = stats.maxStreak;
                 }
-                
-                const streak = calculateStreak(history, habit.type);
+                overallTotalTargetScore += stats.totalContributions;
 
-                // Build Grid Item Elements
-                let gridHtml = '';
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const dateStr = `${currentYear}-07-${String(d).padStart(2, '0')}`;
-                    const isChecked = !!history[dateStr];
-                    
-                    let bgClass = 'bg-[#1e293b] hover:border-gray-500'; // Default empty square
-                    
-                    if (habit.type === 'want') {
-                        if (isChecked) bgClass = 'bg-emerald-500 border-emerald-400 shadow-sm shadow-emerald-900/50';
-                    } else {
-                        // For bad habits: Red means you slipped up. Empty means clear streak.
-                        if (isChecked) bgClass = 'bg-rose-500 border-rose-400 shadow-sm shadow-rose-900/50';
+                // Group days into 53 arrays representing vertical week columns
+                const weeks = [];
+                let currentWeek = [];
+
+                calendarDays.forEach((day, index) => {
+                    currentWeek.push(day);
+                    // Standard Sun-Sat calendar structure
+                    if (day.dayOfWeek === 6 || index === calendarDays.length - 1) {
+                        weeks.push(currentWeek);
+                        currentWeek = [];
                     }
+                });
 
-                    gridHtml += `
-                        <button 
-                            onclick="toggleDay('${habit.id}', '${dateStr}')" 
-                            title="${dateStr}"
-                            class="w-7 h-7 rounded border border-gray-800/40 cursor-pointer focus:outline-none transition-all flex items-center justify-center text-[10px] font-mono text-gray-400 ${bgClass}">
-                            ${d}
-                        </button>
-                    `;
-                }
+                // Generate Column Labels (Months change points)
+                let monthsHtml = '';
+                let lastMonth = '';
+                weeks.forEach((week, weekIdx) => {
+                    // Check first day of week's month label
+                    const firstDayOfWeek = week[0];
+                    if (firstDayOfWeek.monthLabel !== lastMonth) {
+                        lastMonth = firstDayOfWeek.monthLabel;
+                        monthsHtml += `<span class="text-[10px] text-[#8b949e] font-sans" style="grid-column: ${weekIdx + 1}">${firstDayOfWeek.monthLabel}</span>`;
+                    }
+                });
 
-                // Append Habit Visual Component Row
-                const element = document.createElement('div');
-                element.className = "bg-[#0f172a] border border-gray-800 rounded-xl p-4 shadow-md space-y-4";
-                element.innerHTML = `
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-800 pb-3">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm">${habit.type === 'want' ? '🟢' : '🔴'}</span>
-                                <h3 class="font-semibold text-base tracking-wide">${habit.name}</h3>
-                            </div>
-                            <p class="text-xs text-gray-400 mt-0.5">${habit.type === 'want' ? 'Goal: Build this habit' : 'Goal: Avoid this behavior'}</p>
-                        </div>
-                        <div class="flex items-center gap-4 text-xs font-mono bg-[#1e293b]/50 px-3 py-1.5 rounded-lg border border-gray-800 w-fit">
-                            <div>Streak: <span class="text-cyan-400 font-bold">${streak}d</span></div>
-                            <div class="text-gray-600">|</div>
-                            <div>Score: <span class="text-emerald-400 font-bold">${totalSuccesses}</span></div>
-                            <button onclick="deleteHabit('${habit.id}')" class="text-gray-500 hover:text-rose-400 transition-colors ml-2 cursor-pointer" title="Delete Habit">
-                                🗑️
+                // Render dynamic column cells
+                let gridColumnsHtml = '';
+                weeks.forEach(week => {
+                    let columnCellsHtml = '';
+                    week.forEach(day => {
+                        const level = habit.history[day.dateStr] || 0;
+                        let bgStyle = 'bg-[#161b22]'; // Standard empty cell
+                        let borderStyle = 'border-[#21262d]/50';
+
+                        // Calculate visual colors matching type & level index
+                        if (day.isPastToday) {
+                            bgStyle = 'bg-[#161b22]/30 opacity-40 cursor-not-allowed';
+                        } else if (habit.type === 'want') {
+                            if (level === 1) bgStyle = 'bg-[#0e4429]';
+                            if (level === 2) bgStyle = 'bg-[#006d32]';
+                            if (level === 3) bgStyle = 'bg-[#26a641]';
+                            if (level === 4) bgStyle = 'bg-[#39d353]';
+                        } else { // Bad habit slip triggers
+                            if (level === 1) bgStyle = 'bg-[#4c1d24]';
+                            if (level === 2) bgStyle = 'bg-[#7a2a35]';
+                            if (level === 3) bgStyle = 'bg-[#b83a4b]';
+                            if (level === 4) bgStyle = 'bg-[#f85149]';
+                        }
+
+                        // Add unique styling for today's current date
+                        if (day.isToday) {
+                            borderStyle = 'border-cyan-400 border-2 scale-105 z-10';
+                        }
+
+                        // Prepare custom Tooltip label
+                        let tooltipText = '';
+                        if (day.isPastToday) {
+                            tooltipText = `Planned on ${day.formattedString}`;
+                        } else if (habit.type === 'want') {
+                            tooltipText = level === 0 ? `No contribution on ${day.formattedString}` : `${level} actions logged on ${day.formattedString}`;
+                        } else {
+                            tooltipText = level === 0 ? `Habit avoided on ${day.formattedString}! (Level 4 success)` : `Slipped up ${level} times on ${day.formattedString}`;
+                        }
+
+                        columnCellsHtml += `
+                            <button 
+                                onclick="cycleLevel('${habit.id}', '${day.dateStr}')"
+                                onmouseenter="showTooltip(event, '${tooltipText}')"
+                                onmousemove="positionTooltip(event)"
+                                onmouseleave="hideTooltip()"
+                                class="w-[10px] h-[10px] sm:w-[11px] sm:h-[11px] rounded-[1.5px] border ${borderStyle} ${bgStyle} contrib-cell flex-shrink-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-cyan-500">
                             </button>
+                        `;
+                    });
+
+                    // Wrap each array in standard column layout container
+                    gridColumnsHtml += `
+                        <div class="flex flex-col gap-[3px]">
+                            ${columnCellsHtml}
+                        </div>
+                    `;
+                });
+
+                // Generate standard Habit Row Markup
+                const habitRow = document.createElement('div');
+                habitRow.className = "bg-[#161b22] border border-[#21262d] rounded-lg p-5 flex flex-col lg:flex-row gap-5 shadow-lg relative";
+                
+                habitRow.innerHTML = `
+                    <!-- Row metadata and quick details -->
+                    <div class="flex flex-col justify-between lg:w-1/4 gap-3">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2.5 h-2.5 rounded-full ${habit.type === 'want' ? 'bg-[#39d353]' : 'bg-[#f85149]'}"></span>
+                                <h3 class="text-base font-bold text-white tracking-wide">${habit.name}</h3>
+                            </div>
+                            <p class="text-xs text-[#8b949e]">Objective: ${habit.type === 'want' ? 'Build a streak of consistency' : 'Keep slips as dark grey as possible'}</p>
+                        </div>
+
+                        <!-- Real-time analytics labels -->
+                        <div class="grid grid-cols-2 gap-3 text-xs bg-[#0d1117]/80 rounded-md p-3 border border-[#21262d]">
+                            <div>
+                                <span class="text-[#8b949e] block text-[9px] uppercase tracking-wider">Current Streak</span>
+                                <span class="font-bold text-white text-sm flex items-center gap-1">
+                                    <i class="fa-solid fa-fire text-[#ff9000]"></i> ${stats.currentStreak}d
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-[#8b949e] block text-[9px] uppercase tracking-wider">Max Streak</span>
+                                <span class="font-bold text-[#58a6ff] text-sm">
+                                    ${stats.maxStreak}d
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div>
-                        <div class="text-xs text-gray-400 mb-2 font-medium tracking-wider uppercase">July Consistency Grid</div>
-                        <div class="flex flex-wrap gap-1.5 max-w-full">
-                            ${gridHtml}
+
+                    <!-- Horizontal Grid Timeline Board -->
+                    <div class="flex-grow flex flex-col gap-1 overflow-x-auto min-w-0 pb-2">
+                        <!-- Month Labels Column Headers -->
+                        <div class="grid grid-cols-[repeat(53,1fr)] gap-[3px] pr-2 pointer-events-none mb-1">
+                            ${monthsHtml}
+                        </div>
+
+                        <!-- Main Core Grid Grid Matrix -->
+                        <div class="flex gap-[3px] pr-2 scroll-area">
+                            <!-- Left aligned week indicators -->
+                            <div class="flex flex-col justify-between text-[8px] text-[#8b949e] pr-2 py-0.5 select-none pointer-events-none">
+                                <span>Sun</span>
+                                <span>Tue</span>
+                                <span>Thu</span>
+                                <span>Sat</span>
+                            </div>
+                            
+                            <!-- Columns containing grid cells -->
+                            ${gridColumnsHtml}
+                        </div>
+
+                        <!-- Bottom Grid Controls & Legend bar -->
+                        <div class="flex justify-between items-center text-[10px] text-[#8b949e] mt-2 px-1">
+                            <button onclick="deleteHabit('${habit.id}')" class="text-xs text-rose-500 hover:text-rose-400 hover:underline transition-all cursor-pointer flex items-center gap-1">
+                                <i class="fa-solid fa-trash-can"></i> Delete Habit
+                            </button>
+                            <div class="flex items-center gap-1">
+                                <span>Less</span>
+                                <div class="w-[9px] h-[9px] rounded-[1px] bg-[#161b22] border border-[#21262d]/50"></div>
+                                <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#0e4429]' : 'bg-[#4c1d24]'}"></div>
+                                <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#006d32]' : 'bg-[#7a2a35]'}"></div>
+                                <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#26a641]' : 'bg-[#b83a4b]'}"></div>
+                                <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#39d353]' : 'bg-[#f85149]'}"></div>
+                                <span>More</span>
+                            </div>
                         </div>
                     </div>
                 `;
-                habitsContainer.appendChild(element);
+                habitsList.appendChild(habitRow);
             });
+
+            // Update top overall metric elements
+            document.getElementById('stat-total-habits').innerText = habits.length;
+            document.getElementById('stat-max-streak').innerText = `${overallMaxStreak} days`;
+            document.getElementById('stat-target-score').innerText = `${overallTotalTargetScore} pts`;
+
+            setTimeout(() => {
+                const scrollContainers = document.querySelectorAll('.scroll-area');
+                scrollContainers.forEach(container => {
+                    container.scrollLeft = container.scrollWidth;
+                });
+            }, 50);
         }
 
-        // Initialize Render
-        renderHabits();
+        // Initialize App Loop
+        renderAll();
     </script>
 </body>
 </html>
