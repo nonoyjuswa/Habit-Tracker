@@ -4,17 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHabit - GitHub Style Habit Tracker</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- PWA Metadata -->
+    <!-- PWA Metadata for Standalone Mobile Installation -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="GitHabit">
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkdpdEhhYml0IiwKICAic2hvcnJfbmFtZSI6ICJHaXRIYWJpdCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGQxMTE3IiwKICAidGhlbWVfY29sb3IiOiAiIzBkMTExNyIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiaW5hcnksUEhOMlp5QjRaVzVrWDNCeWIyWjFibVFpSUhOMWNtNWxJQ0p1ZFdTaUlIZHBaR1YwYUNJZ2FXNW1iM0p0Y25RaUlIZHBiR3dnTURBZ01ERWdNemd3SURNNEdvQ0FnSUNjM055QmhaR1FpSUhOMWNtNWxJQ0pyWlhabGN5STZJQ0pwWjI0aUlIZHBiR3dnTkRBZ05EQWdOVFl3SURVMkdpQjRhVzFwZEc5eWNtNWxJQ0pwWjI0NklDSmliM0lnTWpnd0lESmdvQ0FnSUNjN0NqeHpaVzVjUGc9PSIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0=">
 
     <style>
-        /* Custom scrollbar rules matching GitHub Dark Mode aesthetics */
+        /* Custom scrollbars matching GitHub dark mode theme */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -29,14 +31,12 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #8b949e;
         }
-        /* Custom styling for contribution cell transition and focus rings */
         .contrib-cell {
             transition: transform 0.1s ease, filter 0.1s ease;
         }
         .contrib-cell:active {
             transform: scale(0.9);
         }
-        /* Lock screen bounce on mobile standalone display modes */
         html, body {
             overscroll-behavior-y: contain;
         }
@@ -44,7 +44,7 @@
 </head>
 <body class="bg-[#0d1117] text-[#c9d1d9] font-sans antialiased min-h-screen flex flex-col selection:bg-[#388bfd]/30">
 
-    <!-- Navigation / Header -->
+    <!-- Header -->
     <header class="border-b border-[#21262d] bg-[#161b22] sticky top-0 z-40 px-4 py-3 shadow-md">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -53,24 +53,24 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-                        GitHabit <span class="text-xs bg-[#21262d] text-[#8b949e] px-2 py-0.5 rounded border border-[#30363d] font-normal">v2026.1</span>
+                        GitHabit <span class="text-xs bg-[#21262d] text-[#8b949e] px-2 py-0.5 rounded border border-[#30363d] font-normal font-mono">MVC</span>
                     </h1>
-                    <p class="text-[10px] text-[#8b949e] uppercase tracking-wider font-semibold">Your Habit Contribution Board</p>
+                    <p class="text-[10px] text-[#8b949e] uppercase tracking-wider font-semibold font-mono">Decoupled Architecture</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="openAddModal()" class="bg-[#238636] hover:bg-[#2ea043] active:scale-95 text-white text-xs font-semibold px-3 py-2 rounded-md transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+                <button onclick="window.openAddModal()" class="bg-[#238636] hover:bg-[#2ea043] active:scale-95 text-white text-xs font-semibold px-3 py-2 rounded-md transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
                     <i class="fa-solid fa-plus"></i> Add Habit
                 </button>
             </div>
         </div>
     </header>
 
+    <!-- Main Workspace -->
     <main class="max-w-6xl mx-auto p-4 w-full flex-grow flex flex-col gap-6">
         
-        <!-- Welcome & Quick Stats Banner -->
+        <!-- Welcome & Quick Stats Dashboard Banner -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Habit Count Stats -->
             <div class="bg-[#161b22] border border-[#21262d] rounded-lg p-4 flex items-center gap-4">
                 <div class="w-12 h-12 rounded-full bg-[#1f6feb]/15 text-[#58a6ff] flex items-center justify-center text-xl">
                     <i class="fa-solid fa-layer-group"></i>
@@ -80,7 +80,6 @@
                     <h3 class="text-2xl font-bold text-white" id="stat-total-habits">0</h3>
                 </div>
             </div>
-            <!-- Overall Consistency Stats -->
             <div class="bg-[#161b22] border border-[#21262d] rounded-lg p-4 flex items-center gap-4">
                 <div class="w-12 h-12 rounded-full bg-[#238636]/15 text-[#39d353] flex items-center justify-center text-xl">
                     <i class="fa-solid fa-fire-flame-simple"></i>
@@ -90,7 +89,6 @@
                     <h3 class="text-2xl font-bold text-white" id="stat-max-streak">0 days</h3>
                 </div>
             </div>
-            <!-- Overall Completion Rates -->
             <div class="bg-[#161b22] border border-[#21262d] rounded-lg p-4 flex items-center gap-4">
                 <div class="w-12 h-12 rounded-full bg-[#ab7df6]/15 text-[#d2a8ff] flex items-center justify-center text-xl">
                     <i class="fa-solid fa-chart-line"></i>
@@ -102,16 +100,16 @@
             </div>
         </section>
 
-        <!-- Habit Grids Workspace -->
+        <!-- Dynamic Contribution Grids Insertion Area -->
         <section id="habits-list" class="space-y-6">
-            <!-- Habit items will be dynamically injected here -->
+            <!-- Injected by View -->
         </section>
     </main>
 
-    <!-- Add Habit Dialog Modal -->
+    <!-- Dialog Modal: Add Habit -->
     <div id="add-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-[#161b22] border border-[#30363d] w-full max-w-md rounded-lg shadow-2xl p-6 relative animate-in fade-in zoom-in-95 duration-150">
-            <button onclick="closeAddModal()" class="absolute top-4 right-4 text-[#8b949e] hover:text-white transition-colors cursor-pointer text-lg">
+        <div class="bg-[#161b22] border border-[#30363d] w-full max-w-md rounded-lg shadow-2xl p-6 relative">
+            <button onclick="window.closeAddModal()" class="absolute top-4 right-4 text-[#8b949e] hover:text-white transition-colors cursor-pointer text-lg">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -120,7 +118,7 @@
             <form id="new-habit-form" class="space-y-4">
                 <div>
                     <label for="habit-name" class="block text-xs font-semibold text-[#8b949e] uppercase mb-1.5 tracking-wider">Habit Title</label>
-                    <input type="text" id="habit-name" required placeholder="e.g., Code LeetCode, Drink Water, No Sugar..." 
+                    <input type="text" id="habit-name" required placeholder="e.g., Code LeetCode, Avoid Sugar..." 
                         class="w-full bg-[#0d1117] border border-[#30363d] rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-[#58a6ff]">
                 </div>
                 <div>
@@ -143,7 +141,7 @@
                     </div>
                 </div>
                 <div class="pt-2 flex justify-end gap-3">
-                    <button type="button" onclick="closeAddModal()" class="border border-[#30363d] hover:bg-[#21262d] text-white text-xs font-semibold px-4 py-2.5 rounded-md transition-colors cursor-pointer">
+                    <button type="button" onclick="window.closeAddModal()" class="border border-[#30363d] hover:bg-[#21262d] text-white text-xs font-semibold px-4 py-2.5 rounded-md transition-colors cursor-pointer">
                         Cancel
                     </button>
                     <button type="submit" class="bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-semibold px-4 py-2.5 rounded-md transition-colors cursor-pointer">
@@ -154,410 +152,526 @@
         </div>
     </div>
 
-    <!-- Custom Popover Tooltip -->
-    <div id="grid-tooltip" class="absolute bg-[#30363d] text-white text-xs px-2.5 py-1.5 rounded shadow-lg pointer-events-none opacity-0 transition-opacity duration-150 z-50 border border-[#444c56] font-sans">
-        0 contributions on July 17, 2026
+    <!-- Custom Modal Dialog: Deletion Confirmation (Replaces standard confirm) -->
+    <div id="delete-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-[#161b22] border border-[#f85149]/30 w-full max-w-sm rounded-lg shadow-2xl p-6 relative">
+            <h2 class="text-md font-bold text-white mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-[#f85149]"></i> Delete Habit?
+            </h2>
+            <p class="text-xs text-[#8b949e] mb-5">Are you sure you want to delete <span id="delete-target-name" class="text-white font-semibold"></span> forever? This action cannot be undone.</p>
+            <div class="flex justify-end gap-3 text-xs">
+                <button id="cancel-delete-btn" class="border border-[#30363d] hover:bg-[#21262d] text-white font-semibold px-3.5 py-2 rounded-md cursor-pointer">Cancel</button>
+                <button id="confirm-delete-btn" class="bg-[#f85149] hover:bg-[#da3633] text-white font-semibold px-3.5 py-2 rounded-md cursor-pointer">Delete</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Footer block -->
+    <!-- Custom Floating Tooltip -->
+    <div id="grid-tooltip" class="absolute bg-[#30363d] text-white text-[10px] px-2.5 py-1.5 rounded shadow-lg pointer-events-none opacity-0 transition-opacity duration-100 z-50 border border-[#444c56]">
+        0 contributions
+    </div>
+
+    <!-- Footer -->
     <footer class="border-t border-[#21262d] py-6 bg-[#0d1117] mt-auto">
         <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <p class="text-xs text-[#8b949e]">&copy; 2026 GitHabit. Inspired by GitHub's contribution graph design.</p>
-            <div class="flex gap-4 text-[#8b949e] text-xs">
+            <p class="text-xs text-[#8b949e]">&copy; 2026 GitHabit MVC. Built for premium long-term habits tracking.</p>
+            <div class="flex gap-4 text-[#8b949e] text-[10px]">
                 <span>Tip: Click cells multiple times to cycle contribution intensity levels!</span>
             </div>
         </div>
     </footer>
 
+    <!-- Core Javascript implementing the MVC Pattern -->
     <script>
-        // Set fixed system timeline context: July 17, 2026
+        // System Context Parameters (Fixed in timeline to Friday July 17, 2026)
         const SYSTEM_YEAR = 2026;
-        const SYSTEM_MONTH_INDEX = 6; // July (0-indexed)
+        const SYSTEM_MONTH_INDEX = 6; // July
         const SYSTEM_DAY_OF_MONTH = 17;
         const systemToday = new Date(SYSTEM_YEAR, SYSTEM_MONTH_INDEX, SYSTEM_DAY_OF_MONTH);
 
-        // Core App State (Saved to LocalStorage)
-        let habits = JSON.parse(localStorage.getItem('githabit_records')) || [
-            {
-                id: '1',
-                name: 'Write Code',
-                type: 'want',
-                history: {
-                    '2026-07-17': 4,
-                    '2026-07-16': 3,
-                    '2026-07-15': 4,
-                    '2026-07-14': 2,
-                    '2026-07-13': 1,
-                    '2026-07-12': 0,
-                    '2026-07-11': 3,
-                    '2026-07-10': 4,
-                    '2026-07-09': 4,
-                    '2026-07-08': 2
+        // Fail-safe database controller wrapper
+        const SafeStorage = {
+            memoryDb: {},
+            getItem(key) {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn("Storage read blocked by browser sandboxing. Using memory buffer.", e);
+                    return this.memoryDb[key] || null;
                 }
             },
-            {
-                id: '2',
-                name: 'Doomscrolling',
-                type: 'dont',
-                history: {
-                    '2026-07-17': 0,
-                    '2026-07-16': 1,
-                    '2026-07-15': 3,
-                    '2026-07-14': 0,
-                    '2026-07-13': 0,
-                    '2026-07-12': 2
+            setItem(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn("Storage write blocked by browser sandboxing. Memory buffered.", e);
+                    this.memoryDb[key] = value;
                 }
             }
-        ];
+        };
 
-        // We calculate exactly 53 complete weeks (371 days) ending on the current week's Saturday
-        const calendarDays = [];
-        const daysOfWeekLetters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-        const monthShortNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-        function buildCalendarTimeline() {
-            calendarDays.length = 0; // reset
-            // Find current week's Saturday to pad to the end of the 53rd column
-            const currentDayOfWeek = systemToday.getDay(); // 5 = Friday
-            const paddingDays = 6 - currentDayOfWeek; // Pad Saturday (6)
-            
-            const timelineEnd = new Date(systemToday);
-            timelineEnd.setDate(timelineEnd.getDate() + paddingDays);
-
-            // Backtrack exactly 370 days from that Saturday (total 371 days representing 53 columns * 7 rows)
-            const timelineStart = new Date(timelineEnd);
-            timelineStart.setDate(timelineStart.getDate() - 370);
-
-            let tempDate = new Date(timelineStart);
-            while (tempDate <= timelineEnd) {
-                const year = tempDate.getFullYear();
-                const month = String(tempDate.getMonth() + 1).padStart(2, '0');
-                const date = String(tempDate.getDate()).padStart(2, '0');
-                const dateStr = `${year}-${month}-${date}`;
-                
-                calendarDays.push({
-                    dateStr: dateStr,
-                    dayOfWeek: tempDate.getDay(),
-                    monthIndex: tempDate.getMonth(),
-                    dateNum: tempDate.getDate(),
-                    monthLabel: monthShortNames[tempDate.getMonth()],
-                    formattedString: tempDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                    isToday: dateStr === '2026-07-17',
-                    isPastToday: tempDate > systemToday
-                });
-                
-                tempDate.setDate(tempDate.getDate() + 1);
+        // ==========================================
+        // 1. MODEL
+        // ==========================================
+        class HabitModel {
+            constructor() {
+                // Load data safely using our browser security wrapper
+                const stored = SafeStorage.getItem('githabit_records');
+                this.habits = (stored && stored !== '[]') ? JSON.parse(stored) : this.getDefaultData();
+                this.calendarDays = [];
+                this.buildCalendarTimeline();
             }
-        }
 
-        function openAddModal() {
-            document.getElementById('add-modal').classList.remove('hidden');
-            document.getElementById('habit-name').focus();
-        }
+            getDefaultData() {
+                return [
+                    {
+                        id: '1',
+                        name: 'Write Code',
+                        type: 'want',
+                        history: {
+                            '2026-07-17': 4, '2026-07-16': 3, '2026-07-15': 4, '2026-07-14': 2,
+                            '2026-07-13': 1, '2026-07-11': 3, '2026-07-10': 4, '2026-07-09': 4, '2026-07-08': 2
+                        }
+                    },
+                    {
+                        id: '2',
+                        name: 'Doomscrolling',
+                        type: 'dont',
+                        history: {
+                            '2026-07-17': 0, '2026-07-16': 1, '2026-07-15': 3, '2026-07-14': 0,
+                            '2026-07-13': 0, '2026-07-12': 2
+                        }
+                    }
+                ];
+            }
 
-        function closeAddModal() {
-            document.getElementById('add-modal').classList.add('hidden');
-        }
+            buildCalendarTimeline() {
+                this.calendarDays = [];
+                const monthShortNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                
+                // Track to Saturday of the current week to anchor the grid properly
+                const currentDayOfWeek = systemToday.getDay(); 
+                const paddingDays = 6 - currentDayOfWeek; 
+                
+                const timelineEnd = new Date(systemToday);
+                timelineEnd.setDate(timelineEnd.getDate() + paddingDays);
 
-        // Add Habit Form Listener
-        document.getElementById('new-habit-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('habit-name').value.trim();
-            const type = document.querySelector('input[name="habit-type"]:checked').value;
+                // Backtrack exactly 370 days from that Saturday (53 full columns x 7 days)
+                const timelineStart = new Date(timelineEnd);
+                timelineStart.setDate(timelineStart.getDate() - 370);
 
-            if (name) {
+                let tempDate = new Date(timelineStart);
+                while (tempDate <= timelineEnd) {
+                    const year = tempDate.getFullYear();
+                    const month = String(tempDate.getMonth() + 1).padStart(2, '0');
+                    const date = String(tempDate.getDate()).padStart(2, '0');
+                    const dateStr = `${year}-${month}-${date}`;
+                    
+                    this.calendarDays.push({
+                        dateStr: dateStr,
+                        dayOfWeek: tempDate.getDay(),
+                        monthIndex: tempDate.getMonth(),
+                        dateNum: tempDate.getDate(),
+                        monthLabel: monthShortNames[tempDate.getMonth()],
+                        formattedString: tempDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                        isToday: dateStr === '2026-07-17',
+                        isPastToday: tempDate > systemToday
+                    });
+                    
+                    tempDate.setDate(tempDate.getDate() + 1);
+                }
+            }
+
+            save() {
+                SafeStorage.setItem('githabit_records', JSON.stringify(this.habits));
+            }
+
+            addHabit(name, type) {
                 const newHabit = {
                     id: Date.now().toString(),
                     name: name,
                     type: type,
                     history: {}
                 };
-                habits.push(newHabit);
-                saveData();
-                renderAll();
-                closeAddModal();
-                document.getElementById('new-habit-form').reset();
+                this.habits.push(newHabit);
+                this.save();
+                return newHabit;
             }
-        });
 
-        function deleteHabit(habitId) {
-            if (confirm("Are you sure you want to delete this tracked habit? This action cannot be undone.")) {
-                habits = habits.filter(h => h.id !== habitId);
-                saveData();
-                renderAll();
+            deleteHabit(id) {
+                this.habits = this.habits.filter(h => h.id !== id);
+                this.save();
             }
-        }
 
-        function saveData() {
-            localStorage.setItem('githabit_records', JSON.stringify(habits));
-        }
+            cycleLevel(habitId, dateStr) {
+                const habit = this.habits.find(h => h.id === habitId);
+                if (!habit) return;
 
-        function getStreakStats(history, type) {
-            let maxStreak = 0;
-            let currentStreak = 0;
-            let totalContributions = 0;
+                // Stop inputs scheduled in the future
+                const clickedDate = new Date(dateStr);
+                if (clickedDate > systemToday) return;
 
-            // Analyze chronological order
-            // Sort keys to parse days sequentially
-            const sortedCalendar = [...calendarDays].filter(day => !day.isPastToday);
-
-            sortedCalendar.forEach(day => {
-                const count = history[day.dateStr] || 0;
-                let isSuccess = false;
-
-                if (type === 'want') {
-                    // Level 1 or higher means active habit checked off
-                    isSuccess = count > 0;
-                    if (isSuccess) totalContributions += count;
+                const currentVal = habit.history[dateStr] || 0;
+                const nextVal = (currentVal + 1) % 5; // Level 0-4 loop cycle
+                
+                if (nextVal === 0) {
+                    delete habit.history[dateStr];
                 } else {
-                    // For bad habits: Level 0 means perfect abstained day. Any count represents a slip.
-                    isSuccess = count === 0;
-                    if (isSuccess) totalContributions += 4; // Avoided gets full progress points
+                    habit.history[dateStr] = nextVal;
                 }
+                this.save();
+            }
 
-                if (isSuccess) {
-                    currentStreak++;
-                    if (currentStreak > maxStreak) {
-                        maxStreak = currentStreak;
+            getStreakStats(history, type) {
+                let maxStreak = 0;
+                let currentStreak = 0;
+                let totalContributions = 0;
+
+                const activeTimeline = this.calendarDays.filter(day => !day.isPastToday);
+
+                activeTimeline.forEach(day => {
+                    const count = history[day.dateStr] || 0;
+                    let isSuccess = false;
+
+                    if (type === 'want') {
+                        isSuccess = count > 0;
+                        if (isSuccess) totalContributions += count;
+                    } else {
+                        isSuccess = count === 0; // successfully avoided slipups
+                        if (isSuccess) totalContributions += 4; 
                     }
-                } else {
-                    currentStreak = 0;
-                }
-            });
 
-            return {
-                currentStreak: currentStreak,
-                maxStreak: maxStreak,
-                totalContributions: totalContributions
-            };
-        }
-
-        // Cycle activity levels inside the selected calendar grid block
-        window.cycleLevel = function(habitId, dateStr) {
-            const habit = habits.find(h => h.id === habitId);
-            if (!habit) return;
-
-            // Don't log dates in the future
-            const clickedDate = new Date(dateStr);
-            if (clickedDate > systemToday) return;
-
-            const currentVal = habit.history[dateStr] || 0;
-            // Cycle intensity counts 0 -> 1 -> 2 -> 3 -> 4 -> 0
-            const nextVal = (currentVal + 1) % 5;
-            
-            if (nextVal === 0) {
-                delete habit.history[dateStr];
-            } else {
-                habit.history[dateStr] = nextVal;
-            }
-
-            saveData();
-            renderAll();
-        }
-
-        const tooltip = document.getElementById('grid-tooltip');
-
-        function showTooltip(event, message) {
-            tooltip.innerText = message;
-            tooltip.style.opacity = '1';
-            positionTooltip(event);
-        }
-
-        function positionTooltip(event) {
-            tooltip.style.left = (event.pageX + 10) + 'px';
-            tooltip.style.top = (event.pageY + 10) + 'px';
-        }
-
-        function hideTooltip() {
-            tooltip.style.opacity = '0';
-        }
-
-        function renderAll() {
-            buildCalendarTimeline();
-            const habitsList = document.getElementById('habits-list');
-            habitsList.innerHTML = '';
-
-            let overallMaxStreak = 0;
-            let overallTotalTargetScore = 0;
-
-            habits.forEach(habit => {
-                const stats = getStreakStats(habit.history, habit.type);
-                if (stats.maxStreak > overallMaxStreak) {
-                    overallMaxStreak = stats.maxStreak;
-                }
-                overallTotalTargetScore += stats.totalContributions;
-
-                // Group days into 53 arrays representing vertical week columns
-                const weeks = [];
-                let currentWeek = [];
-
-                calendarDays.forEach((day, index) => {
-                    currentWeek.push(day);
-                    // Standard Sun-Sat calendar structure
-                    if (day.dayOfWeek === 6 || index === calendarDays.length - 1) {
-                        weeks.push(currentWeek);
-                        currentWeek = [];
+                    if (isSuccess) {
+                        currentStreak++;
+                        if (currentStreak > maxStreak) maxStreak = currentStreak;
+                    } else {
+                        currentStreak = 0;
                     }
                 });
 
-                // Generate Column Labels (Months change points)
-                let monthsHtml = '';
-                let lastMonth = '';
-                weeks.forEach((week, weekIdx) => {
-                    // Check first day of week's month label
-                    const firstDayOfWeek = week[0];
-                    if (firstDayOfWeek.monthLabel !== lastMonth) {
-                        lastMonth = firstDayOfWeek.monthLabel;
-                        monthsHtml += `<span class="text-[10px] text-[#8b949e] font-sans" style="grid-column: ${weekIdx + 1}">${firstDayOfWeek.monthLabel}</span>`;
-                    }
+                return { currentStreak, maxStreak, totalContributions };
+            }
+        }
+
+        // ==========================================
+        // 2. VIEW
+        // ==========================================
+        class HabitView {
+            constructor() {
+                this.habitsList = document.getElementById('habits-list');
+                this.addModal = document.getElementById('add-modal');
+                this.deleteModal = document.getElementById('delete-modal');
+                this.habitForm = document.getElementById('new-habit-form');
+                
+                this.totalHabitsStat = document.getElementById('stat-total-habits');
+                this.maxStreakStat = document.getElementById('stat-max-streak');
+                this.targetScoreStat = document.getElementById('stat-target-score');
+                
+                this.deleteTargetNameEl = document.getElementById('delete-target-name');
+                this.confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+                this.cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+
+                this.tooltip = document.getElementById('grid-tooltip');
+                this.setupGlobalModalControls();
+            }
+
+            setupGlobalModalControls() {
+                window.openAddModal = () => {
+                    this.addModal.classList.remove('hidden');
+                    document.getElementById('habit-name').focus();
+                };
+                window.closeAddModal = () => {
+                    this.addModal.classList.add('hidden');
+                    this.habitForm.reset();
+                };
+                this.cancelDeleteBtn.addEventListener('click', () => {
+                    this.deleteModal.classList.add('hidden');
                 });
+            }
 
-                // Render dynamic column cells
-                let gridColumnsHtml = '';
-                weeks.forEach(week => {
-                    let columnCellsHtml = '';
-                    week.forEach(day => {
-                        const level = habit.history[day.dateStr] || 0;
-                        let bgStyle = 'bg-[#161b22]'; // Standard empty cell
-                        let borderStyle = 'border-[#21262d]/50';
+            showTooltip(event, message) {
+                this.tooltip.innerText = message;
+                this.tooltip.style.opacity = '1';
+                this.positionTooltip(event);
+            }
 
-                        // Calculate visual colors matching type & level index
-                        if (day.isPastToday) {
-                            bgStyle = 'bg-[#161b22]/30 opacity-40 cursor-not-allowed';
-                        } else if (habit.type === 'want') {
-                            if (level === 1) bgStyle = 'bg-[#0e4429]';
-                            if (level === 2) bgStyle = 'bg-[#006d32]';
-                            if (level === 3) bgStyle = 'bg-[#26a641]';
-                            if (level === 4) bgStyle = 'bg-[#39d353]';
-                        } else { // Bad habit slip triggers
-                            if (level === 1) bgStyle = 'bg-[#4c1d24]';
-                            if (level === 2) bgStyle = 'bg-[#7a2a35]';
-                            if (level === 3) bgStyle = 'bg-[#b83a4b]';
-                            if (level === 4) bgStyle = 'bg-[#f85149]';
+            positionTooltip(event) {
+                this.tooltip.style.left = (event.pageX + 10) + 'px';
+                this.tooltip.style.top = (event.pageY + 10) + 'px';
+            }
+
+            hideTooltip() {
+                this.tooltip.style.opacity = '0';
+            }
+
+            render(habits, model) {
+                this.habitsList.innerHTML = '';
+                let overallMaxStreak = 0;
+                let overallScore = 0;
+
+                if (habits.length === 0) {
+                    this.habitsList.innerHTML = `
+                        <div class="text-center py-12 text-[#8b949e] text-sm">
+                            No habits tracked yet. Click "+ Add Habit" above to start your streaks!
+                        </div>`;
+                    this.totalHabitsStat.innerText = '0';
+                    this.maxStreakStat.innerText = '0 days';
+                    this.targetScoreStat.innerText = '0';
+                    return;
+                }
+
+                habits.forEach(habit => {
+                    const stats = model.getStreakStats(habit.history, habit.type);
+                    if (stats.maxStreak > overallMaxStreak) overallMaxStreak = stats.maxStreak;
+                    overallScore += stats.totalContributions;
+
+                    // Group calendar days into 53 separate column arrays
+                    const weeks = [];
+                    let currentWeek = [];
+
+                    model.calendarDays.forEach((day, idx) => {
+                        currentWeek.push(day);
+                        if (day.dayOfWeek === 6 || idx === model.calendarDays.length - 1) {
+                            weeks.push(currentWeek);
+                            currentWeek = [];
                         }
-
-                        // Add unique styling for today's current date
-                        if (day.isToday) {
-                            borderStyle = 'border-cyan-400 border-2 scale-105 z-10';
-                        }
-
-                        // Prepare custom Tooltip label
-                        let tooltipText = '';
-                        if (day.isPastToday) {
-                            tooltipText = `Planned on ${day.formattedString}`;
-                        } else if (habit.type === 'want') {
-                            tooltipText = level === 0 ? `No contribution on ${day.formattedString}` : `${level} actions logged on ${day.formattedString}`;
-                        } else {
-                            tooltipText = level === 0 ? `Habit avoided on ${day.formattedString}! (Level 4 success)` : `Slipped up ${level} times on ${day.formattedString}`;
-                        }
-
-                        columnCellsHtml += `
-                            <button 
-                                onclick="cycleLevel('${habit.id}', '${day.dateStr}')"
-                                onmouseenter="showTooltip(event, '${tooltipText}')"
-                                onmousemove="positionTooltip(event)"
-                                onmouseleave="hideTooltip()"
-                                class="w-[10px] h-[10px] sm:w-[11px] sm:h-[11px] rounded-[1.5px] border ${borderStyle} ${bgStyle} contrib-cell flex-shrink-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-cyan-500">
-                            </button>
-                        `;
                     });
 
-                    // Wrap each array in standard column layout container
-                    gridColumnsHtml += `
-                        <div class="flex flex-col gap-[3px]">
-                            ${columnCellsHtml}
+                    // Build Month Headers spanning corresponding columns
+                    let monthsHtml = '';
+                    let lastMonth = '';
+                    weeks.forEach((week, weekIdx) => {
+                        const firstDay = week[0];
+                        if (firstDay.monthLabel !== lastMonth) {
+                            lastMonth = firstDay.monthLabel;
+                            monthsHtml += `<span class="text-[9px] text-[#8b949e] font-sans" style="grid-column: ${weekIdx + 1}">${firstDay.monthLabel}</span>`;
+                        }
+                    });
+
+                    // Build Column Grid Cells
+                    let gridColumnsHtml = '';
+                    weeks.forEach(week => {
+                        let columnCellsHtml = '';
+                        week.forEach(day => {
+                            const level = habit.history[day.dateStr] || 0;
+                            let bgStyle = 'bg-[#161b22]';
+                            let borderStyle = 'border-[#21262d]/50';
+
+                            if (day.isPastToday) {
+                                bgStyle = 'bg-[#161b22]/30 opacity-40 cursor-not-allowed';
+                            } else if (habit.type === 'want') {
+                                if (level === 1) bgStyle = 'bg-[#0e4429]';
+                                if (level === 2) bgStyle = 'bg-[#006d32]';
+                                if (level === 3) bgStyle = 'bg-[#26a641]';
+                                if (level === 4) bgStyle = 'bg-[#39d353]';
+                            } else {
+                                if (level === 1) bgStyle = 'bg-[#4c1d24]';
+                                if (level === 2) bgStyle = 'bg-[#7a2a35]';
+                                if (level === 3) bgStyle = 'bg-[#b83a4b]';
+                                if (level === 4) bgStyle = 'bg-[#f85149]';
+                            }
+
+                            if (day.isToday) {
+                                borderStyle = 'border-cyan-400 border-2 scale-105 z-10';
+                            }
+
+                            // Tooltip labels matching classic GitHub styles
+                            let tooltipText = '';
+                            if (day.isPastToday) {
+                                tooltipText = `Planned: ${day.formattedString}`;
+                            } else if (habit.type === 'want') {
+                                tooltipText = level === 0 ? `No contribution on ${day.formattedString}` : `${level} logs tracked on ${day.formattedString}`;
+                            } else {
+                                tooltipText = level === 0 ? `Abstained successfully on ${day.formattedString}` : `${level} slips flagged on ${day.formattedString}`;
+                            }
+
+                            columnCellsHtml += `
+                                <button 
+                                    data-id="${habit.id}" 
+                                    data-date="${day.dateStr}"
+                                    data-tooltip="${tooltipText}"
+                                    class="w-[10px] h-[10px] sm:w-[11px] sm:h-[11px] rounded-[1.5px] border ${borderStyle} ${bgStyle} contrib-cell flex-shrink-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                                </button>
+                            `;
+                        });
+
+                        gridColumnsHtml += `<div class="flex flex-col gap-[3px]">${columnCellsHtml}</div>`;
+                    });
+
+                    // Habit Grid Row Container
+                    const habitRow = document.createElement('div');
+                    habitRow.className = "bg-[#161b22] border border-[#21262d] rounded-lg p-5 flex flex-col lg:flex-row gap-5 shadow-lg relative";
+                    habitRow.innerHTML = `
+                        <div class="flex flex-col justify-between lg:w-1/4 gap-3">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2.5 h-2.5 rounded-full ${habit.type === 'want' ? 'bg-[#39d353]' : 'bg-[#f85149]'}"></span>
+                                    <h3 class="text-base font-bold text-white tracking-wide">${habit.name}</h3>
+                                </div>
+                                <p class="text-xs text-[#8b949e]">Objective: ${habit.type === 'want' ? 'Build a streak of consistency' : 'Keep slips as dark grey as possible'}</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 text-xs bg-[#0d1117]/80 rounded-md p-3 border border-[#21262d]">
+                                <div>
+                                    <span class="text-[#8b949e] block text-[9px] uppercase tracking-wider">Current Streak</span>
+                                    <span class="font-bold text-white text-sm flex items-center gap-1">
+                                        <i class="fa-solid fa-fire text-[#ff9000]"></i> ${stats.currentStreak}d
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="text-[#8b949e] block text-[9px] uppercase tracking-wider">Max Streak</span>
+                                    <span class="font-bold text-[#58a6ff] text-sm">${stats.maxStreak}d</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-grow flex flex-col gap-1 overflow-x-auto min-w-0 pb-2">
+                            <div class="grid grid-cols-[repeat(53,1fr)] gap-[3px] pr-2 pointer-events-none mb-1">
+                                ${monthsHtml}
+                            </div>
+                            <div class="flex gap-[3px] pr-2 scroll-area">
+                                <div class="flex flex-col justify-between text-[8px] text-[#8b949e] pr-2 py-0.5 select-none pointer-events-none">
+                                    <span>Sun</span>
+                                    <span>Tue</span>
+                                    <span>Thu</span>
+                                    <span>Sat</span>
+                                </div>
+                                ${gridColumnsHtml}
+                            </div>
+                            <div class="flex justify-between items-center text-[10px] text-[#8b949e] mt-2 px-1">
+                                <button data-delete-id="${habit.id}" data-habit-name="${habit.name}" class="text-xs text-rose-500 hover:text-rose-400 hover:underline transition-all cursor-pointer flex items-center gap-1 delete-btn">
+                                    <i class="fa-solid fa-trash-can"></i> Delete Habit
+                                </button>
+                                <div class="flex items-center gap-1">
+                                    <span>Less</span>
+                                    <div class="w-[9px] h-[9px] rounded-[1px] bg-[#161b22] border border-[#21262d]/50"></div>
+                                    <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#0e4429]' : 'bg-[#4c1d24]'}"></div>
+                                    <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#006d32]' : 'bg-[#7a2a35]'}"></div>
+                                    <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#26a641]' : 'bg-[#b83a4b]'}"></div>
+                                    <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#39d353]' : 'bg-[#f85149]'}"></div>
+                                    <span>More</span>
+                                </div>
+                            </div>
                         </div>
                     `;
+                    this.habitsList.appendChild(habitRow);
                 });
 
-                // Generate standard Habit Row Markup
-                const habitRow = document.createElement('div');
-                habitRow.className = "bg-[#161b22] border border-[#21262d] rounded-lg p-5 flex flex-col lg:flex-row gap-5 shadow-lg relative";
-                
-                habitRow.innerHTML = `
-                    <!-- Row metadata and quick details -->
-                    <div class="flex flex-col justify-between lg:w-1/4 gap-3">
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="w-2.5 h-2.5 rounded-full ${habit.type === 'want' ? 'bg-[#39d353]' : 'bg-[#f85149]'}"></span>
-                                <h3 class="text-base font-bold text-white tracking-wide">${habit.name}</h3>
-                            </div>
-                            <p class="text-xs text-[#8b949e]">Objective: ${habit.type === 'want' ? 'Build a streak of consistency' : 'Keep slips as dark grey as possible'}</p>
-                        </div>
+                this.totalHabitsStat.innerText = habits.length;
+                this.maxStreakStat.innerText = `${overallMaxStreak} days`;
+                this.targetScoreStat.innerText = `${overallScore}`;
 
-                        <!-- Real-time analytics labels -->
-                        <div class="grid grid-cols-2 gap-3 text-xs bg-[#0d1117]/80 rounded-md p-3 border border-[#21262d]">
-                            <div>
-                                <span class="text-[#8b949e] block text-[9px] uppercase tracking-wider">Current Streak</span>
-                                <span class="font-bold text-white text-sm flex items-center gap-1">
-                                    <i class="fa-solid fa-fire text-[#ff9000]"></i> ${stats.currentStreak}d
-                                </span>
-                            </div>
-                            <div>
-                                <span class="text-[#8b949e] block text-[9px] uppercase tracking-wider">Max Streak</span>
-                                <span class="font-bold text-[#58a6ff] text-sm">
-                                    ${stats.maxStreak}d
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                // Auto-scroll layout to today's date context (the far right)
+                setTimeout(() => {
+                    const scrollContainers = document.querySelectorAll('.scroll-area');
+                    scrollContainers.forEach(container => {
+                        container.scrollLeft = container.scrollWidth;
+                    });
+                }, 50);
+            }
 
-                    <!-- Horizontal Grid Timeline Board -->
-                    <div class="flex-grow flex flex-col gap-1 overflow-x-auto min-w-0 pb-2">
-                        <!-- Month Labels Column Headers -->
-                        <div class="grid grid-cols-[repeat(53,1fr)] gap-[3px] pr-2 pointer-events-none mb-1">
-                            ${monthsHtml}
-                        </div>
-
-                        <!-- Main Core Grid Grid Matrix -->
-                        <div class="flex gap-[3px] pr-2 scroll-area">
-                            <!-- Left aligned week indicators -->
-                            <div class="flex flex-col justify-between text-[8px] text-[#8b949e] pr-2 py-0.5 select-none pointer-events-none">
-                                <span>Sun</span>
-                                <span>Tue</span>
-                                <span>Thu</span>
-                                <span>Sat</span>
-                            </div>
-                            
-                            <!-- Columns containing grid cells -->
-                            ${gridColumnsHtml}
-                        </div>
-
-                        <!-- Bottom Grid Controls & Legend bar -->
-                        <div class="flex justify-between items-center text-[10px] text-[#8b949e] mt-2 px-1">
-                            <button onclick="deleteHabit('${habit.id}')" class="text-xs text-rose-500 hover:text-rose-400 hover:underline transition-all cursor-pointer flex items-center gap-1">
-                                <i class="fa-solid fa-trash-can"></i> Delete Habit
-                            </button>
-                            <div class="flex items-center gap-1">
-                                <span>Less</span>
-                                <div class="w-[9px] h-[9px] rounded-[1px] bg-[#161b22] border border-[#21262d]/50"></div>
-                                <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#0e4429]' : 'bg-[#4c1d24]'}"></div>
-                                <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#006d32]' : 'bg-[#7a2a35]'}"></div>
-                                <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#26a641]' : 'bg-[#b83a4b]'}"></div>
-                                <div class="w-[9px] h-[9px] rounded-[1px] ${habit.type === 'want' ? 'bg-[#39d353]' : 'bg-[#f85149]'}"></div>
-                                <span>More</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                habitsList.appendChild(habitRow);
-            });
-
-            // Update top overall metric elements
-            document.getElementById('stat-total-habits').innerText = habits.length;
-            document.getElementById('stat-max-streak').innerText = `${overallMaxStreak} days`;
-            document.getElementById('stat-target-score').innerText = `${overallTotalTargetScore} pts`;
-
-            setTimeout(() => {
-                const scrollContainers = document.querySelectorAll('.scroll-area');
-                scrollContainers.forEach(container => {
-                    container.scrollLeft = container.scrollWidth;
+            bindAddHabit(handler) {
+                this.habitForm.addEventListener('submit', e => {
+                    e.preventDefault();
+                    const name = document.getElementById('habit-name').value.trim();
+                    const type = document.querySelector('input[name="habit-type"]:checked').value;
+                    if (name) {
+                        handler(name, type);
+                        window.closeAddModal();
+                    }
                 });
-            }, 50);
+            }
+
+            bindCellInteraction(handler) {
+                this.habitsList.addEventListener('click', e => {
+                    const btn = e.target.closest('.contrib-cell');
+                    if (btn) {
+                        handler(btn.dataset.id, btn.dataset.date);
+                    }
+                });
+
+                // Tooltip trigger binding logic
+                this.habitsList.addEventListener('mouseover', e => {
+                    const btn = e.target.closest('.contrib-cell');
+                    if (btn) {
+                        this.showTooltip(e, btn.dataset.tooltip);
+                    }
+                });
+
+                this.habitsList.addEventListener('mousemove', e => {
+                    const btn = e.target.closest('.contrib-cell');
+                    if (btn) {
+                        this.positionTooltip(e);
+                    }
+                });
+
+                this.habitsList.addEventListener('mouseout', e => {
+                    if (e.target.closest('.contrib-cell')) {
+                        this.hideTooltip();
+                    }
+                });
+            }
+
+            bindDeleteHabit(handler) {
+                let pendingDeleteId = null;
+
+                this.habitsList.addEventListener('click', e => {
+                    const deleteBtn = e.target.closest('.delete-btn');
+                    if (deleteBtn) {
+                        pendingDeleteId = deleteBtn.dataset.deleteId;
+                        this.deleteTargetNameEl.innerText = deleteBtn.dataset.habitName;
+                        this.deleteModal.classList.remove('hidden');
+                    }
+                });
+
+                this.confirmDeleteBtn.onclick = () => {
+                    if (pendingDeleteId) {
+                        handler(pendingDeleteId);
+                        this.deleteModal.classList.add('hidden');
+                        pendingDeleteId = null;
+                    }
+                };
+            }
         }
 
-        // Initialize App Loop
-        renderAll();
+        // ==========================================
+        // 3. CONTROLLER
+        // ==========================================
+        class HabitController {
+            constructor(model, view) {
+                this.model = model;
+                this.view = view;
+
+                this.view.bindAddHabit(this.handleAddHabit);
+                this.view.bindCellInteraction(this.handleCellClick);
+                this.view.bindDeleteHabit(this.handleDeleteHabit);
+
+                this.updateView();
+            }
+
+            updateView = () => {
+                this.view.render(this.model.habits, this.model);
+            }
+
+            handleAddHabit = (name, type) => {
+                this.model.addHabit(name, type);
+                this.updateView();
+            }
+
+            handleDeleteHabit = (id) => {
+                this.model.deleteHabit(id);
+                this.updateView();
+            }
+
+            handleCellClick = (id, dateStr) => {
+                this.model.cycleLevel(id, dateStr);
+                this.updateView();
+            }
+        }
+
+        // Initialize App on DOM Content Loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new HabitController(new HabitModel(), new HabitView());
+        });
     </script>
 </body>
 </html>
