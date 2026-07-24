@@ -4,28 +4,16 @@ database.py — the "Model" layer.
 Everything that touches SQLite lives here. The UI never writes raw SQL;
 it just calls these functions.
 
---- Schema migrations ---
-The database file stores its own schema_version number. On startup,
-init_db() checks that version and runs only the migrations needed to
-bring an existing file up to date — your actual notes/habits/records are
-preserved, only the table structure changes. This means future schema
-changes never require deleting your data.
-
-To add a new schema change later:
-  1. Bump CURRENT_SCHEMA_VERSION by 1
-  2. Write a _migrate_vN_to_vM(conn) function that alters the schema
-  3. Add it to the MIGRATIONS dict keyed by the version it upgrades TO
-That's it — existing users' files upgrade automatically next launch.
+Schema history and upgrade logic live in migrations.py, not here — this
+file stays focused purely on how the app talks to data today.
 """
 
 import sqlite3
 import re
 
-DB_PATH = "habit_journal.db"
+import migrations
 
-CURRENT_SCHEMA_VERSION = 2
-# v1 = original schema (notes.date UNIQUE)
-# v2 = notes.date no longer unique (multiple stacked notes per day)
+DB_PATH = "habit_journal.db"
 
 _connection = None  # single shared connection, created by init_db()
 
@@ -35,8 +23,6 @@ def _conn():
         raise RuntimeError("Call init_db() before using the database.")
     return _connection
 
-
-# ---------- Setup + migrations ----------
 
 def init_db():
     global _connection
@@ -54,13 +40,12 @@ def init_db():
     ).fetchone() is not None
 
     # Create tables at their LATEST definition if they don't exist yet.
-    # (For a brand-new db, this alone produces the current schema directly.)
     conn.executescript(
         """
         CREATE TABLE IF NOT EXISTS notes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,             -- 'YYYY-MM-DD' — many notes per day allowed
-            time TEXT NOT NULL,             -- 'HH:MM'
+            date TEXT NOT NULL,
+            time TEXT NOT NULL,
             description TEXT NOT NULL
         );
 
@@ -86,76 +71,9 @@ def init_db():
     )
     conn.commit()
 
-    version_row = conn.execute("SELECT version FROM schema_version WHERE id = 1").fetchone()
-
-    if version_row is None:
-        if notes_table_existed_before:
-            # This file predates schema versioning entirely — treat it as
-            # version 1 and run every migration up to current.
-            # (_run_migrations also stamps schema_version as it goes.)
-            _run_migrations(conn, from_version=1)
-        else:
-            # Brand-new file, already created at the latest schema above —
-            # just stamp it, no migration needed.
-            conn.execute(
-                "INSERT INTO schema_version (id, version) VALUES (1, ?)",
-                (CURRENT_SCHEMA_VERSION,),
-            )
-            conn.commit()
-    else:
-        _run_migrations(conn, from_version=version_row["version"])
+    migrations.run_migrations(conn, notes_table_existed_before)
 
     _connection = conn
-
-
-def _run_migrations(conn, from_version: int):
-    """Applies every migration needed to go from `from_version` up to
-    CURRENT_SCHEMA_VERSION, in order, updating the stored version after
-    each successful step."""
-    for v in range(from_version + 1, CURRENT_SCHEMA_VERSION + 1):
-        migration_fn = MIGRATIONS.get(v)
-        if migration_fn:
-            migration_fn(conn)
-        conn.execute(
-            "INSERT INTO schema_version (id, version) VALUES (1, ?) "
-            "ON CONFLICT(id) DO UPDATE SET version = ?",
-            (v, v),
-        )
-        conn.commit()
-    # Safety net: guarantee a row exists at CURRENT_SCHEMA_VERSION even if
-    # the loop above had nothing to do (e.g. from_version already current).
-    conn.execute(
-        "INSERT INTO schema_version (id, version) VALUES (1, ?) "
-        "ON CONFLICT(id) DO UPDATE SET version = ?",
-        (CURRENT_SCHEMA_VERSION, CURRENT_SCHEMA_VERSION),
-    )
-    conn.commit()
-
-
-def _migrate_v1_to_v2_remove_notes_unique(conn):
-    """v1 -> v2: notes.date was UNIQUE (one note per day). Rebuild the
-    table without that constraint so multiple notes per day can stack,
-    copying every existing row across untouched."""
-    conn.execute("ALTER TABLE notes RENAME TO notes_old_v1")
-    conn.execute(
-        """CREATE TABLE notes (
-               id INTEGER PRIMARY KEY AUTOINCREMENT,
-               date TEXT NOT NULL,
-               time TEXT NOT NULL,
-               description TEXT NOT NULL
-           )"""
-    )
-    conn.execute(
-        "INSERT INTO notes (id, date, time, description) "
-        "SELECT id, date, time, description FROM notes_old_v1"
-    )
-    conn.execute("DROP TABLE notes_old_v1")
-
-
-MIGRATIONS = {
-    2: _migrate_v1_to_v2_remove_notes_unique,
-    # Add future migrations here, e.g. 3: _migrate_v2_to_v3_add_spirit_category
-}
 
 
 def close_db():
