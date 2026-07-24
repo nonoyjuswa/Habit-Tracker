@@ -46,8 +46,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS habit_records (
             habit_id INTEGER NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
             date TEXT NOT NULL,
-            detected INTEGER NOT NULL DEFAULT 0,   -- 0/1
-            overridden INTEGER NOT NULL DEFAULT 0, -- 0/1, protects manual edits
+            detected INTEGER NOT NULL DEFAULT 0,   -- 0/1, driven only by keyword detection
             PRIMARY KEY (habit_id, date)
         );
         """
@@ -75,7 +74,7 @@ def add_note(note_date: str, note_time: str, description: str):
     # Run keyword detection for every habit against this new note
     for habit in get_habits():
         detected = _text_matches_keywords(description, habit["keywords"])
-        _upsert_record(habit["id"], note_date, detected, overridden=False)
+        _upsert_record(habit["id"], note_date, detected)
 
 
 def get_note(note_date: str):
@@ -142,58 +141,34 @@ def get_habit(habit_id: int):
 # ---------- Habit records (the per-day shaded/unshaded cells) ----------
 
 def get_habit_records(habit_id: int) -> dict:
-    """Returns {date_str: {'detected': bool, 'overridden': bool}}"""
+    """Returns {date_str: {'detected': bool}}"""
     conn = get_connection()
     rows = conn.execute(
         "SELECT * FROM habit_records WHERE habit_id = ?", (habit_id,)
     ).fetchall()
     conn.close()
-    return {
-        r["date"]: {"detected": bool(r["detected"]), "overridden": bool(r["overridden"])}
-        for r in rows
-    }
-
-
-def toggle_habit_record(habit_id: int, record_date: str):
-    """Manual override: flips a single cell and marks it as overridden so
-    future rescans never silently overwrite your manual correction."""
-    conn = get_connection()
-    row = conn.execute(
-        "SELECT detected FROM habit_records WHERE habit_id = ? AND date = ?",
-        (habit_id, record_date),
-    ).fetchone()
-    current = bool(row["detected"]) if row else False
-    conn.execute(
-        """INSERT INTO habit_records (habit_id, date, detected, overridden)
-           VALUES (?, ?, ?, 1)
-           ON CONFLICT(habit_id, date) DO UPDATE SET detected = ?, overridden = 1""",
-        (habit_id, record_date, int(not current), int(not current)),
-    )
-    conn.commit()
-    conn.close()
+    return {r["date"]: {"detected": bool(r["detected"])} for r in rows}
 
 
 def rescan_habit(habit_id: int):
     """Re-checks ALL saved notes against this one habit's current keyword
-    list. Cells the user manually overrode are left untouched on purpose."""
+    list. Cells are locked (no manual override), so this simply recomputes
+    detection for every day from scratch."""
     habit = get_habit(habit_id)
     if not habit:
         return
-    records = get_habit_records(habit_id)
     for note in get_all_notes():
-        if records.get(note["date"], {}).get("overridden"):
-            continue  # respect manual correction, don't clobber it
         detected = _text_matches_keywords(note["description"], habit["keywords"])
-        _upsert_record(habit_id, note["date"], detected, overridden=False)
+        _upsert_record(habit_id, note["date"], detected)
 
 
-def _upsert_record(habit_id: int, record_date: str, detected: bool, overridden: bool):
+def _upsert_record(habit_id: int, record_date: str, detected: bool):
     conn = get_connection()
     conn.execute(
-        """INSERT INTO habit_records (habit_id, date, detected, overridden)
-           VALUES (?, ?, ?, ?)
-           ON CONFLICT(habit_id, date) DO UPDATE SET detected = ?, overridden = ?""",
-        (habit_id, record_date, int(detected), int(overridden), int(detected), int(overridden)),
+        """INSERT INTO habit_records (habit_id, date, detected)
+           VALUES (?, ?, ?)
+           ON CONFLICT(habit_id, date) DO UPDATE SET detected = ?""",
+        (habit_id, record_date, int(detected), int(detected)),
     )
     conn.commit()
     conn.close()

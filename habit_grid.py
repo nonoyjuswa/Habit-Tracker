@@ -22,12 +22,10 @@ class HabitGrid(ctk.CTkFrame):
     manually override it. Rendering is data-driven: call refresh(records)
     whenever the underlying data changes."""
 
-    def __init__(self, master, category: str, on_cell_click, **kwargs):
+    def __init__(self, master, category: str, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.category = category
-        self.on_cell_click = on_cell_click
         self.weeks = build_52_week_grid()
-        self.cell_lookup = {}  # canvas item id -> date_str
 
         width = LEFT_PAD + len(self.weeks) * (CELL + GAP) + 20
         height = TOP_PAD + 7 * (CELL + GAP) + 10
@@ -36,7 +34,7 @@ class HabitGrid(ctk.CTkFrame):
             self, width=width, height=height, bg="#0d1117", highlightthickness=0
         )
         self.canvas.pack(fill="x", expand=True)
-        self.canvas.bind("<Button-1>", self._handle_click)
+        # No click binding — cells are locked, driven only by keyword detection.
 
         self._draw_month_labels()
         self._draw_weekday_labels()
@@ -61,8 +59,7 @@ class HabitGrid(ctk.CTkFrame):
             )
 
     def refresh(self, records: dict):
-        """records: {date_str: {'detected': bool, 'overridden': bool}}"""
-        self.cell_lookup = {}
+        """records: {date_str: {'detected': bool}}"""
         # clear previous cells (keep month/weekday labels by tagging cells)
         self.canvas.delete("cell")
 
@@ -89,16 +86,8 @@ class HabitGrid(ctk.CTkFrame):
                 width = 2 if is_today else 1
                 outline_color = TODAY_BORDER if is_today else outline
 
-                item = self.canvas.create_rectangle(
+                self.canvas.create_rectangle(
                     x, y, x + CELL, y + CELL,
                     fill=fill, outline=outline_color, width=width,
                     tags="cell"
                 )
-                if not day["is_future"]:
-                    self.cell_lookup[item] = day["date_str"]
-
-    def _handle_click(self, event):
-        item = self.canvas.find_closest(event.x, event.y)
-        if item and item[0] in self.cell_lookup:
-            date_str = self.cell_lookup[item[0]]
-            self.on_cell_click(date_str)

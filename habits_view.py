@@ -101,15 +101,9 @@ class HabitsView(ctk.CTkFrame):
 
         if self.grid_widget:
             self.grid_widget.destroy()
-        self.grid_widget = HabitGrid(
-            self.grid_container, category=habit["category"], on_cell_click=self._toggle_cell
-        )
+        self.grid_widget = HabitGrid(self.grid_container, category=habit["category"])
         self.grid_widget.pack(fill="x")
         self.grid_widget.refresh(db.get_habit_records(habit_id))
-
-    def _toggle_cell(self, date_str):
-        db.toggle_habit_record(self.selected_habit_id, date_str)
-        self.grid_widget.refresh(db.get_habit_records(self.selected_habit_id))
 
     def _add_keyword(self):
         text = self.new_keyword_entry.get().strip()
