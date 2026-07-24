@@ -29,6 +29,12 @@ class App(ctk.CTk):
         JournalView(self.tabs.tab("Journal")).pack(fill="both", expand=True, padx=8, pady=8)
         HabitsView(self.tabs.tab("Habits")).pack(fill="both", expand=True, padx=8, pady=8)
 
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
+
+    def _on_close(self):
+        db.close_db()
+        self.destroy()
+
 
 if __name__ == "__main__":
     app = App()
