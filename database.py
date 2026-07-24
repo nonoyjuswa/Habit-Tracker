@@ -4,34 +4,46 @@ database.py — the "Model" layer.
 Everything that touches SQLite lives here. The UI never writes raw SQL;
 it just calls these functions.
 
+Uses ONE shared connection for the app's whole lifetime (rather than
+opening/closing a new connection per call) — this avoids SQLite "database
+is locked" errors that can happen from rapid connection churn, especially
+on Windows.
+
 Tables:
-  notes          -> one row per calendar day (locked once the day passes)
+  notes          -> many rows per day allowed, each with its own timestamp
   habits         -> the habits you're tracking + their keyword variations
-  habit_records  -> one row per (habit, date): was it detected, was it
-                    manually overridden
+  habit_records  -> one row per (habit, date): was it detected that day
 """
 
 import sqlite3
 import re
-from datetime import date
 
 DB_PATH = "habit_journal.db"
 
+_connection = None  # single shared connection, created by init_db()
 
-def get_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+
+def _conn():
+    if _connection is None:
+        raise RuntimeError("Call init_db() before using the database.")
+    return _connection
 
 
 def init_db():
-    conn = get_connection()
-    conn.executescript(
+    global _connection
+    if _connection is not None:
+        return  # already initialized
+    _connection = sqlite3.connect(DB_PATH, timeout=10)
+    _connection.row_factory = sqlite3.Row
+    _connection.execute("PRAGMA foreign_keys = ON")
+    _connection.execute("PRAGMA journal_mode = WAL")   # better concurrent access
+    _connection.execute("PRAGMA busy_timeout = 5000")  # wait up to 5s instead of erroring
+
+    _connection.executescript(
         """
         CREATE TABLE IF NOT EXISTS notes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT UNIQUE NOT NULL,      -- 'YYYY-MM-DD'
+            date TEXT NOT NULL,             -- 'YYYY-MM-DD' — many notes per day allowed
             time TEXT NOT NULL,             -- 'HH:MM'
             description TEXT NOT NULL
         );
@@ -51,90 +63,101 @@ def init_db():
         );
         """
     )
-    conn.commit()
-    conn.close()
+    _connection.commit()
+
+
+def close_db():
+    """Call on app shutdown to release the file cleanly."""
+    global _connection
+    if _connection is not None:
+        _connection.close()
+        _connection = None
 
 
 # ---------- Notes ----------
 
 def add_note(note_date: str, note_time: str, description: str):
-    """Adds a note for a day that doesn't have one yet. Locked afterward
-    (no update function exists on purpose — notes are never edited)."""
-    conn = get_connection()
+    """Adds a note. Multiple notes per day are allowed and stack by
+    timestamp. Note text itself is never edited once saved."""
+    conn = _conn()
     try:
         conn.execute(
             "INSERT INTO notes (date, time, description) VALUES (?, ?, ?)",
             (note_date, note_time, description),
         )
-        conn.commit()
-    except sqlite3.IntegrityError:
-        raise ValueError(f"A note already exists for {note_date}.")
-    finally:
-        conn.close()
-    # Run keyword detection for every habit against this new note
+    except sqlite3.IntegrityError as e:
+        raise RuntimeError(
+            "Your habit_journal.db file has an outdated schema (likely from "
+            "an earlier version of this app) and needs to be deleted so it "
+            "can be recreated. Close the app, delete habit_journal.db "
+            "(and -wal/-shm files next to it if present), then run again.\n"
+            f"Original error: {e}"
+        )
+    conn.commit()
+    # Recompute detection for this day across ALL of its notes (not just
+    # this new one) — so a match in an earlier note today still counts.
     for habit in get_habits():
-        detected = _text_matches_keywords(description, habit["keywords"])
+        detected = _detect_for_date(note_date, habit["keywords"])
         _upsert_record(habit["id"], note_date, detected)
 
 
-def get_note(note_date: str):
-    conn = get_connection()
-    row = conn.execute("SELECT * FROM notes WHERE date = ?", (note_date,)).fetchone()
-    conn.close()
-    return dict(row) if row else None
+def get_notes_for_date(note_date: str):
+    """Returns all notes for a given day, oldest first."""
+    rows = _conn().execute(
+        "SELECT * FROM notes WHERE date = ? ORDER BY time ASC, id ASC", (note_date,)
+    ).fetchall()
+    return [dict(r) for r in rows]
 
 
 def get_all_notes():
-    conn = get_connection()
-    rows = conn.execute("SELECT * FROM notes ORDER BY date ASC").fetchall()
-    conn.close()
+    rows = _conn().execute(
+        "SELECT * FROM notes ORDER BY date ASC, time ASC, id ASC"
+    ).fetchall()
     return [dict(r) for r in rows]
+
+
+def get_all_dates_with_notes():
+    rows = _conn().execute("SELECT DISTINCT date FROM notes ORDER BY date ASC").fetchall()
+    return [r["date"] for r in rows]
 
 
 # ---------- Habits ----------
 
 def add_habit(name: str, category: str, keywords: list[str]):
-    conn = get_connection()
+    conn = _conn()
     cur = conn.execute(
         "INSERT INTO habits (name, category, keywords) VALUES (?, ?, ?)",
         (name, category, ",".join(k.strip() for k in keywords if k.strip())),
     )
     conn.commit()
     habit_id = cur.lastrowid
-    conn.close()
     rescan_habit(habit_id)  # populate history against existing notes
     return habit_id
 
 
 def delete_habit(habit_id: int):
-    conn = get_connection()
+    conn = _conn()
     conn.execute("DELETE FROM habits WHERE id = ?", (habit_id,))
     conn.commit()
-    conn.close()
 
 
 def update_habit_keywords(habit_id: int, keywords: list[str]):
-    conn = get_connection()
+    conn = _conn()
     conn.execute(
         "UPDATE habits SET keywords = ? WHERE id = ?",
         (",".join(k.strip() for k in keywords if k.strip()), habit_id),
     )
     conn.commit()
-    conn.close()
     rescan_habit(habit_id)  # keyword list changed -> re-check this habit only
 
 
 def get_habits():
-    conn = get_connection()
-    rows = conn.execute("SELECT * FROM habits ORDER BY id ASC").fetchall()
-    conn.close()
+    rows = _conn().execute("SELECT * FROM habits ORDER BY id ASC").fetchall()
     return [dict(r) for r in rows]
 
 
 def get_habit(habit_id: int):
-    conn = get_connection()
-    row = conn.execute("SELECT * FROM habits WHERE id = ?", (habit_id,)).fetchone()
-    conn.close()
+    row = _conn().execute("SELECT * FROM habits WHERE id = ?", (habit_id,)).fetchone()
     return dict(row) if row else None
 
 
@@ -142,28 +165,33 @@ def get_habit(habit_id: int):
 
 def get_habit_records(habit_id: int) -> dict:
     """Returns {date_str: {'detected': bool}}"""
-    conn = get_connection()
-    rows = conn.execute(
+    rows = _conn().execute(
         "SELECT * FROM habit_records WHERE habit_id = ?", (habit_id,)
     ).fetchall()
-    conn.close()
     return {r["date"]: {"detected": bool(r["detected"])} for r in rows}
 
 
 def rescan_habit(habit_id: int):
-    """Re-checks ALL saved notes against this one habit's current keyword
-    list. Cells are locked (no manual override), so this simply recomputes
-    detection for every day from scratch."""
+    """Re-checks every day that has at least one note against this habit's
+    current keyword list, aggregating across ALL of that day's notes."""
     habit = get_habit(habit_id)
     if not habit:
         return
-    for note in get_all_notes():
-        detected = _text_matches_keywords(note["description"], habit["keywords"])
-        _upsert_record(habit_id, note["date"], detected)
+    for note_date in get_all_dates_with_notes():
+        detected = _detect_for_date(note_date, habit["keywords"])
+        _upsert_record(habit_id, note_date, detected)
+
+
+def _detect_for_date(note_date: str, keywords_csv: str) -> bool:
+    """True if ANY note on this day matches the habit's keywords."""
+    return any(
+        _text_matches_keywords(n["description"], keywords_csv)
+        for n in get_notes_for_date(note_date)
+    )
 
 
 def _upsert_record(habit_id: int, record_date: str, detected: bool):
-    conn = get_connection()
+    conn = _conn()
     conn.execute(
         """INSERT INTO habit_records (habit_id, date, detected)
            VALUES (?, ?, ?)
@@ -171,7 +199,6 @@ def _upsert_record(habit_id: int, record_date: str, detected: bool):
         (habit_id, record_date, int(detected), int(detected)),
     )
     conn.commit()
-    conn.close()
 
 
 def _text_matches_keywords(text: str, keywords_csv: str) -> bool:
