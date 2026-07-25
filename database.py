@@ -194,14 +194,21 @@ def _upsert_record(habit_id: int, record_date: str, detected: bool):
     conn.commit()
 
 
-def _text_matches_keywords(text: str, keywords_csv: str) -> bool:
+def find_keyword_spans(text: str, keywords_csv: str):
+    """Returns a list of (start, end) character spans for every whole-word,
+    case-insensitive keyword match in `text`. Used both by detection and by
+    the UI for highlighting — one source of truth for 'what counts as a match'."""
     if not keywords_csv:
-        return False
-    text_lower = text.lower()
+        return []
+    spans = []
     for kw in keywords_csv.split(","):
-        kw = kw.strip().lower()
+        kw = kw.strip()
         if not kw:
             continue
-        if re.search(rf"\b{re.escape(kw)}\b", text_lower):
-            return True
-    return False
+        for m in re.finditer(rf"\b{re.escape(kw)}\b", text, re.IGNORECASE):
+            spans.append((m.start(), m.end()))
+    return spans
+
+
+def _text_matches_keywords(text: str, keywords_csv: str) -> bool:
+    return len(find_keyword_spans(text, keywords_csv)) > 0

@@ -2,6 +2,7 @@ import customtkinter as ctk
 from datetime import datetime
 import database as db
 from date_utils import recent_days, today_str
+from habit_grid import CATEGORY_COLORS
 
 VISIBLE_DAYS = 30
 
@@ -85,6 +86,7 @@ class JournalView(ctk.CTkFrame):
         if notes:
             body = "\n\n".join(f"[{n['time']}] {n['description']}" for n in notes)
             self.notes_list.insert("1.0", body)
+            self._highlight_keywords(body)
         else:
             self.notes_list.insert("1.0", "(No notes yet for this day.)")
         self.notes_list.configure(state="disabled")
@@ -106,3 +108,14 @@ class JournalView(ctk.CTkFrame):
         now_time = datetime.now().strftime("%H:%M")
         db.add_note(today_str(), now_time, text)
         self.refresh()
+
+    def _highlight_keywords(self, full_text: str):
+        """Colors each habit's keyword occurrences using that habit's
+        category color, so you can spot at a glance which habit each
+        word belongs to (matches the grid colors in the Habits tab)."""
+        for habit in db.get_habits():
+            tag_name = f"habit_{habit['id']}"
+            color = CATEGORY_COLORS.get(habit["category"], "#8b949e")
+            self.notes_list.tag_config(tag_name, foreground=color)
+            for start, end in db.find_keyword_spans(full_text, habit["keywords"]):
+                self.notes_list.tag_add(tag_name, f"1.0+{start}c", f"1.0+{end}c")
