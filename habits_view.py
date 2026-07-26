@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import database as db
 from habit_grid import HabitGrid
+from keyword_chip import KeywordChip
 
 CATEGORIES = ["Health", "Skills", "Money"]
 
@@ -117,28 +118,61 @@ class HabitsView(ctk.CTkFrame):
             return
 
         for kw in keywords:
-            chip = ctk.CTkLabel(
-                self.keywords_frame,
-                text=kw,
-                fg_color="#21262d",
-                text_color="#c9d1d9",
-                corner_radius=12,
-                font=("Segoe UI", 11),
-                padx=10,
-                pady=4,
+            chip = KeywordChip(
+                self.keywords_frame, keyword=kw,
+                on_edit=self._start_edit_keyword, on_remove=self._remove_keyword,
             )
             chip.pack(side="left", padx=(0, 6), pady=2)
+
+    def _remove_keyword(self, keyword: str):
+        ok, error = db.remove_habit_keyword(self.selected_habit_id, keyword)
+        if not ok:
+            self._show_keyword_error(error)
+            return
+        self._render_detail(self.selected_habit_id)  # rescan already ran inside remove_habit_keyword
+
+    def _start_edit_keyword(self, keyword: str):
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Edit keyword")
+        dialog.geometry("300x140")
+        dialog.grab_set()
+
+        ctk.CTkLabel(dialog, text=f"Editing: {keyword}").pack(padx=16, pady=(16, 4), anchor="w")
+        entry = ctk.CTkEntry(dialog, width=260)
+        entry.insert(0, keyword)
+        entry.pack(padx=16, pady=4)
+        error_label = ctk.CTkLabel(dialog, text="", text_color="#f85149", font=("Segoe UI", 10))
+        error_label.pack(padx=16, anchor="w")
+
+        def save():
+            new_text = entry.get().strip()
+            ok, error = db.edit_habit_keyword(self.selected_habit_id, keyword, new_text)
+            if not ok:
+                error_label.configure(text=error)
+                return
+            dialog.destroy()
+            self._render_detail(self.selected_habit_id)
+
+        ctk.CTkButton(dialog, text="Save", command=save).pack(pady=10)
+
+    def _show_keyword_error(self, message: str):
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Can't do that")
+        dialog.geometry("300x120")
+        dialog.grab_set()
+        ctk.CTkLabel(dialog, text=message, wraplength=260, justify="left").pack(padx=16, pady=16)
+        ctk.CTkButton(dialog, text="OK", command=dialog.destroy).pack(pady=(0, 12))
 
     def _add_keyword(self):
         text = self.new_keyword_entry.get().strip()
         if not text or not self.selected_habit_id:
             return
-        habit = db.get_habit(self.selected_habit_id)
-        existing = [k for k in habit["keywords"].split(",") if k]
-        existing.append(text)
-        db.update_habit_keywords(self.selected_habit_id, existing)
+        ok, error = db.add_habit_keyword(self.selected_habit_id, text)
+        if not ok:
+            self._show_keyword_error(error)
+            return
         self.new_keyword_entry.delete(0, "end")
-        self._render_detail(self.selected_habit_id)  # rescan already ran inside update_habit_keywords
+        self._render_detail(self.selected_habit_id)
 
     def _delete_selected(self):
         if not self.selected_habit_id:
