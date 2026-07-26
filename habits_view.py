@@ -38,13 +38,7 @@ class HabitsView(ctk.CTkFrame):
         self.detail_title.pack(anchor="w", padx=16, pady=(16, 4))
 
         self.keywords_frame = ctk.CTkFrame(self.right, fg_color="transparent")
-        self.keywords_frame.pack(anchor="w", padx=16, pady=(4, 8), fill="x")
-
-        keyword_row = ctk.CTkFrame(self.right, fg_color="transparent")
-        keyword_row.pack(anchor="w", padx=16, pady=(6, 12), fill="x")
-        self.new_keyword_entry = ctk.CTkEntry(keyword_row, placeholder_text="Add a variation, e.g. 'coded'", width=220)
-        self.new_keyword_entry.pack(side="left", padx=(0, 8))
-        ctk.CTkButton(keyword_row, text="Add variation", width=110, command=self._add_keyword).pack(side="left")
+        self.keywords_frame.pack(anchor="w", padx=16, pady=(4, 12), fill="x")
 
         self.grid_container = ctk.CTkFrame(self.right, fg_color="transparent")
         self.grid_container.pack(fill="both", expand=True, padx=16, pady=8)
@@ -115,25 +109,47 @@ class HabitsView(ctk.CTkFrame):
             ctk.CTkLabel(
                 self.keywords_frame, text="(no keywords yet)", text_color="#8b949e", font=("Segoe UI", 11)
             ).pack(side="left")
-            return
-
-        for kw in keywords:
-            chip = KeywordChip(
-                self.keywords_frame, keyword=kw,
-                on_edit=self._start_edit_keyword, on_remove=self._remove_keyword,
-            )
-            chip.pack(side="left", padx=(0, 6), pady=2)
+        else:
+            for kw in keywords:
+                chip = KeywordChip(
+                    self.keywords_frame, keyword=kw,
+                    on_edit=self._start_edit_keyword, on_remove=self._remove_keyword,
+                )
+                chip.pack(side="left", padx=(0, 6), pady=2)
 
         add_chip = ctk.CTkButton(
             self.keywords_frame, text="+", width=28, height=28, corner_radius=12,
             fg_color="transparent", border_width=1, border_color="#39d353",
             text_color="#39d353", hover_color="#132818",
-            command=self._focus_add_entry,
+            command=self._open_add_keyword_dialog,
         )
         add_chip.pack(side="left", padx=(0, 6), pady=2)
 
-    def _focus_add_entry(self):
-        self.new_keyword_entry.focus_set()
+    def _open_add_keyword_dialog(self):
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Add keyword")
+        dialog.geometry("300x150")
+        dialog.grab_set()
+
+        ctk.CTkLabel(dialog, text="Keyword variation").pack(anchor="w", padx=16, pady=(16, 0))
+        entry = ctk.CTkEntry(dialog, width=260, placeholder_text="e.g. 'coded'")
+        entry.pack(padx=16, pady=4)
+        entry.focus_set()
+        error_label = ctk.CTkLabel(dialog, text="", text_color="#f85149", font=("Segoe UI", 10))
+        error_label.pack(padx=16, anchor="w")
+
+        def submit():
+            text = entry.get().strip()
+            if not text:
+                return
+            ok, error = db.add_habit_keyword(self.selected_habit_id, text)
+            if not ok:
+                error_label.configure(text=error)
+                return
+            dialog.destroy()
+            self._render_detail(self.selected_habit_id)
+
+        ctk.CTkButton(dialog, text="Add", command=submit).pack(pady=10)
 
     def _remove_keyword(self, keyword: str):
         ok, error = db.remove_habit_keyword(self.selected_habit_id, keyword)
@@ -173,17 +189,6 @@ class HabitsView(ctk.CTkFrame):
         dialog.grab_set()
         ctk.CTkLabel(dialog, text=message, wraplength=260, justify="left").pack(padx=16, pady=16)
         ctk.CTkButton(dialog, text="OK", command=dialog.destroy).pack(pady=(0, 12))
-
-    def _add_keyword(self):
-        text = self.new_keyword_entry.get().strip()
-        if not text or not self.selected_habit_id:
-            return
-        ok, error = db.add_habit_keyword(self.selected_habit_id, text)
-        if not ok:
-            self._show_keyword_error(error)
-            return
-        self.new_keyword_entry.delete(0, "end")
-        self._render_detail(self.selected_habit_id)
 
     def _delete_selected(self):
         if not self.selected_habit_id:
