@@ -36,8 +36,8 @@ class HabitsView(ctk.CTkFrame):
         self.detail_title = ctk.CTkLabel(self.right, text="Select a habit", font=("Segoe UI", 16, "bold"))
         self.detail_title.pack(anchor="w", padx=16, pady=(16, 4))
 
-        self.keyword_label = ctk.CTkLabel(self.right, text="", text_color="#8b949e", font=("Segoe UI", 11))
-        self.keyword_label.pack(anchor="w", padx=16)
+        self.keywords_frame = ctk.CTkFrame(self.right, fg_color="transparent")
+        self.keywords_frame.pack(anchor="w", padx=16, pady=(4, 8), fill="x")
 
         keyword_row = ctk.CTkFrame(self.right, fg_color="transparent")
         keyword_row.pack(anchor="w", padx=16, pady=(6, 12), fill="x")
@@ -82,7 +82,8 @@ class HabitsView(ctk.CTkFrame):
             self._select_habit(habits[0]["id"])
         else:
             self.detail_title.configure(text="No habits yet — add one to get started")
-            self.keyword_label.configure(text="")
+            for widget in self.keywords_frame.winfo_children():
+                widget.destroy()
             if self.grid_widget:
                 self.grid_widget.destroy()
                 self.grid_widget = None
@@ -96,14 +97,37 @@ class HabitsView(ctk.CTkFrame):
         if not habit:
             return
         self.detail_title.configure(text=f"{habit['name']}  ({habit['category']})")
-        keywords = habit["keywords"] or "(none yet)"
-        self.keyword_label.configure(text=f"Keywords: {keywords}")
+        self._render_keyword_chips(habit)
 
         if self.grid_widget:
             self.grid_widget.destroy()
         self.grid_widget = HabitGrid(self.grid_container, category=habit["category"])
         self.grid_widget.pack(fill="x")
         self.grid_widget.refresh(db.get_habit_records(habit_id))
+
+    def _render_keyword_chips(self, habit):
+        for widget in self.keywords_frame.winfo_children():
+            widget.destroy()
+
+        keywords = [k.strip() for k in habit["keywords"].split(",") if k.strip()]
+        if not keywords:
+            ctk.CTkLabel(
+                self.keywords_frame, text="(no keywords yet)", text_color="#8b949e", font=("Segoe UI", 11)
+            ).pack(side="left")
+            return
+
+        for kw in keywords:
+            chip = ctk.CTkLabel(
+                self.keywords_frame,
+                text=kw,
+                fg_color="#21262d",
+                text_color="#c9d1d9",
+                corner_radius=12,
+                font=("Segoe UI", 11),
+                padx=10,
+                pady=4,
+            )
+            chip.pack(side="left", padx=(0, 6), pady=2)
 
     def _add_keyword(self):
         text = self.new_keyword_entry.get().strip()
