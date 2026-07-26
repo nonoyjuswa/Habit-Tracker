@@ -124,6 +124,17 @@ class HabitsView(ctk.CTkFrame):
             )
             chip.pack(side="left", padx=(0, 6), pady=2)
 
+        add_chip = ctk.CTkButton(
+            self.keywords_frame, text="+", width=28, height=28, corner_radius=12,
+            fg_color="transparent", border_width=1, border_color="#39d353",
+            text_color="#39d353", hover_color="#132818",
+            command=self._focus_add_entry,
+        )
+        add_chip.pack(side="left", padx=(0, 6), pady=2)
+
+    def _focus_add_entry(self):
+        self.new_keyword_entry.focus_set()
+
     def _remove_keyword(self, keyword: str):
         ok, error = db.remove_habit_keyword(self.selected_habit_id, keyword)
         if not ok:
