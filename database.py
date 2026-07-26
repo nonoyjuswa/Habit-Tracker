@@ -148,6 +148,63 @@ def update_habit_keywords(habit_id: int, keywords: list[str]):
     rescan_habit(habit_id)
 
 
+def _keyword_list(habit) -> list:
+    return [k.strip() for k in habit["keywords"].split(",") if k.strip()]
+
+
+def remove_habit_keyword(habit_id: int, keyword_to_remove: str):
+    """Removes one keyword variation. Returns (success, error_message).
+    Refuses if this would leave the habit with zero keywords."""
+    habit = get_habit(habit_id)
+    existing = _keyword_list(habit)
+
+    if len(existing) <= 1:
+        return False, "Can't remove the last keyword — this habit would never auto-detect again."
+
+    remaining = [k for k in existing if k.lower() != keyword_to_remove.strip().lower()]
+    if len(remaining) == len(existing):
+        return False, f"'{keyword_to_remove}' wasn't found for this habit."
+
+    update_habit_keywords(habit_id, remaining)
+    return True, None
+
+
+def add_habit_keyword(habit_id: int, new_keyword: str):
+    """Adds one keyword variation. Returns (success, error_message).
+    Refuses empty text or a case-insensitive duplicate."""
+    new_keyword = new_keyword.strip()
+    if not new_keyword:
+        return False, "Keyword can't be empty."
+
+    habit = get_habit(habit_id)
+    existing = _keyword_list(habit)
+    if any(k.lower() == new_keyword.lower() for k in existing):
+        return False, f"'{new_keyword}' is already a keyword for this habit."
+
+    existing.append(new_keyword)
+    update_habit_keywords(habit_id, existing)
+    return True, None
+
+
+def edit_habit_keyword(habit_id: int, old_keyword: str, new_keyword: str):
+    """Renames one keyword variation in place. Returns (success, error_message).
+    Refuses empty text or a case-insensitive duplicate against the OTHER
+    keywords (renaming to its own current text is fine)."""
+    new_keyword = new_keyword.strip()
+    if not new_keyword:
+        return False, "Keyword can't be empty."
+
+    habit = get_habit(habit_id)
+    existing = _keyword_list(habit)
+    others = [k for k in existing if k.lower() != old_keyword.strip().lower()]
+    if any(k.lower() == new_keyword.lower() for k in others):
+        return False, f"'{new_keyword}' already exists for this habit."
+
+    updated = [new_keyword if k.lower() == old_keyword.strip().lower() else k for k in existing]
+    update_habit_keywords(habit_id, updated)
+    return True, None
+
+
 def get_habits():
     rows = _conn().execute("SELECT * FROM habits ORDER BY id ASC").fetchall()
     return [dict(r) for r in rows]
